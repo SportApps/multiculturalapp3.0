@@ -1,15 +1,14 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'dart:math';
-
-import 'package:multiculturalapp/Screens/home.dart';
-import 'package:multiculturalapp/Screens/volleyballLevels.dart';
 
 class UserInfoStartscreen extends StatefulWidget {
   UserInfoStartscreen({
     this.name,
+    this.likes,
     this.skill,
     this.heightContainer,
     this.imageUrl,
@@ -20,6 +19,8 @@ class UserInfoStartscreen extends StatefulWidget {
   });
 
   final String name;
+
+  final int likes;
 
   final String skill;
 
@@ -51,35 +52,29 @@ class _UserInfoStartscreenState extends State<UserInfoStartscreen> {
 
     if (widget.skill == "Baby Beginner") {
       advancePorcent = 0.125;
-    }
-    else if (widget.skill == "Little Child") {
+    } else if (widget.skill == "Little Child") {
       advancePorcent = 0.25;
-    }
-   else if (widget.skill == "Amateur") {
+    } else if (widget.skill == "Amateur") {
       advancePorcent = 0.5;
-    }
-    else if (widget.skill == "Grown-Up") {
+    } else if (widget.skill == "Grown-Up") {
       advancePorcent = 0.6125;
-    }
-    else if (widget.skill == "Experienced") {
+    } else if (widget.skill == "Experienced") {
       advancePorcent = 0.75;
-    }
-
-    else if (widget.skill == "Volley God" || widget.skill == "Admin") {
+    } else if (widget.skill == "Volley God" || widget.skill == "Admin") {
       advancePorcent = 1;
     }
-
   }
 
   @override
   Widget build(BuildContext context) {
     String _imagelink = widget.imageUrl;
 
+    String myLikes = widget.likes.toString();
 
     return Container(
       height: 500,
       width: double.infinity,
-      padding:EdgeInsets.only(top:10),
+      padding: EdgeInsets.only(top: 10),
       color: Colors.white,
       child: Column(
         children: <Widget>[
@@ -96,7 +91,7 @@ class _UserInfoStartscreenState extends State<UserInfoStartscreen> {
                 size: Size(widget.diameter, widget.diameter),
               ),
               CircleAvatar(
-                radius: MediaQuery.of(context).size.width*0.225,
+                radius: MediaQuery.of(context).size.width * 0.225,
                 backgroundImage: NetworkImage(_imagelink),
               )
             ],
@@ -121,7 +116,25 @@ class _UserInfoStartscreenState extends State<UserInfoStartscreen> {
               SizedBox(
                 width: 10,
               ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
 
+              Text(
+                "$myLikes Likes",
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black.withOpacity(0.8)),
+              ),
+              SizedBox(width: 5,),
+              Icon(
+                MdiIcons.heart,
+                size: 20,
+                color: Colors.black.withOpacity(0.8),
+              ),
             ],
           ),
           SizedBox(
@@ -222,11 +235,10 @@ class userInfoW extends StatelessWidget {
   Widget build(BuildContext context) {
     return CircleAvatar(
       backgroundColor: myColor,
-      radius: MediaQuery.of(context).size.width*0.16,
+      radius: MediaQuery.of(context).size.width * 0.16,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-
           Icon(
             myIcon,
             size: 28,

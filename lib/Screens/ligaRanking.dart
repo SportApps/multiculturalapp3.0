@@ -2,13 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:provider/provider.dart';
-import 'package:multiculturalapp/MyWidgets/myAppBars/standardAppBar.dart';
 import 'package:multiculturalapp/MyWidgets/progress.dart';
 import 'package:multiculturalapp/MyWidgets/userInfoStartscreen.dart';
-import 'package:multiculturalapp/Screens/home.dart';
 import 'package:multiculturalapp/model/users.dart';
+import 'package:provider/provider.dart';
 
 class LigaRAnking extends StatefulWidget {
   static const link = "/LigaRanking";
@@ -45,33 +42,28 @@ class _LigaRAnkingState extends State<LigaRAnking> {
     double advancePorcent;
     for (var i = 0; i < fireUsers.docs.length; i++) {
       var fireUserNRdata = fireUsers.docs[NR];
+      print(fireUserNRdata);
 
-      if (fireUserNRdata.data()["achievedLvl"] == "Baby Beginner") {
+      if (fireUserNRdata.data()["achievedlvl"] == "Baby Beginner") {
         advancePorcent = 0.125;
-      }
-      else if (fireUserNRdata.data()["achievedLvl"] == "Little Child") {
+      } else if (fireUserNRdata.data()["achievedlvl"] == "Little Child") {
         advancePorcent = 0.25;
-      }
-      else if (fireUserNRdata.data()["achievedLvl"] == "Amateur") {
+      } else if (fireUserNRdata.data()["achievedlvl"] == "Amateur") {
         advancePorcent = 0.5;
-      }
-      else if (fireUserNRdata.data()["achievedLvl"] == "Grown-Up") {
+      } else if (fireUserNRdata.data()["achievedlvl"] == "Grown-Up") {
         advancePorcent = 0.625;
-      }
-     else if (fireUserNRdata.data()["achievedLvl"] == "Experienced") {
+      } else if (fireUserNRdata.data()["achievedlvl"] == "Experienced") {
         advancePorcent = 0.75;
-      }
-
-     else if (fireUserNRdata.data()["achievedLvl"] == "Volley God") {
+      } else if (fireUserNRdata.data()["achievedlvl"] == "Volley God") {
         advancePorcent = 1;
       }
 
       top10List.add([
         fireUserNRdata.data()["username"],
         fireUserNRdata.data()["points"],
-        fireUserNRdata.data()["photoUrl"],
+        fireUserNRdata.data()["photo_url"],
         NR + 1,
-        fireUserNRdata.data()["achievedLvl"],
+        fireUserNRdata.data()["achievedlvl"],
         advancePorcent,
       ]);
       NR++;
@@ -97,7 +89,7 @@ class _LigaRAnkingState extends State<LigaRAnking> {
             ),
           ),
           Text(
-            "MVB",
+            "Volley World",
             style: TextStyle(fontFamily: "Futura", fontSize: 20),
           )
         ],
@@ -127,7 +119,6 @@ class _LigaRAnkingState extends State<LigaRAnking> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: appBarbuilder(),
       body: Container(
@@ -175,9 +166,6 @@ class _LigaRAnkingState extends State<LigaRAnking> {
                 ? circularProgress()
                 : Flexible(
                     child: ListView.builder(
-
-
-
                         itemCount: top10List.length,
                         itemBuilder: (context, i) {
                           var listInstance = top10List[i];
@@ -223,13 +211,31 @@ class _LigaRAnkingState extends State<LigaRAnking> {
                                           MediaQuery.of(context).size.width *
                                               0.3),
                                     ),
-                                    CircleAvatar(
-                                      radius:
-                                          MediaQuery.of(context).size.width *
-                                              0.125,
-                                      backgroundImage:
-                                          NetworkImage(top10List[i][2]),
-                                    )
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(MediaQuery.of(context)
+                                          .size
+                                          .width *
+                                          0.2,),
+                                      child: FadeInImage.assetNetwork(
+                                          fit: BoxFit.cover,
+                                          width: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.25,
+                                          height: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.25,
+                                          fadeInDuration: Duration(seconds: 1),
+                                          placeholder:
+                                              'assets/images/volleychild.png',
+                                          imageErrorBuilder: (context, url,
+                                                  error) =>
+                                              new Image.asset(
+
+                                                  "assets/images/volleychild.png"),
+                                          image: top10List[i][2]),
+                                    ),
                                   ],
                                 ),
                                 SizedBox(

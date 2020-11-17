@@ -1,13 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:multiculturalapp/MyWidgets/TournamentInfoScr/tournamentinfo.dart';
-import 'package:provider/provider.dart';
 import 'package:multiculturalapp/MyWidgets/TournOnWidgets/GameCard.dart';
 import 'package:multiculturalapp/MyWidgets/progress.dart';
 import 'package:multiculturalapp/Screens/Final/SilverWinnerListviewbuilder.dart';
 import 'package:multiculturalapp/model/tournaments.dart';
+import 'package:provider/provider.dart';
 
 import '../NextGameDetails.dart';
 
@@ -331,7 +329,7 @@ class _SilverOnlyMatchesState extends State<SilverOnlyMatches> {
           "historyGamesWon": player1NewWins,
           "historyGamesLost": player1NewLost,
           "winLooseRatio": player1newRatio,
-          "achievedLvl": player1NewLvl,
+          "achievedlvl": player1NewLvl,
         });
         await FirebaseFirestore.instance
             .collection("users")
@@ -341,7 +339,7 @@ class _SilverOnlyMatchesState extends State<SilverOnlyMatches> {
           "historyGamesWon": player2NewWins,
           "historyGamesLost": player2NewLost,
           "winLooseRatio": player2newRatio,
-          "achievedLvl": player2NewLvl,
+          "achievedlvl": player2NewLvl,
         });
 
         // Here we fill the PointResult List
@@ -443,132 +441,136 @@ class _SilverOnlyMatchesState extends State<SilverOnlyMatches> {
   Widget build(BuildContext context) {
     return _isloading
         ? circularProgress()
-        : SingleChildScrollView(
-            child: Container(
-              color: Colors.white,
-              child: Column(
-                children: <Widget>[
-                  Container(
-                    padding: EdgeInsets.only(top: 30, bottom: 20),
-                    child: Text(
-                      "Silver Group",
-                      style:
-                          TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  Container(
-                    padding: EdgeInsets.only(bottom: 10),
-                    child: Text(
-                      "Admin Functions",
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  Container(
-                    padding: EdgeInsets.only(bottom: 20),
-                    child: Text(
-                      "Step 1: Select Country",
-                      style: TextStyle(
-                        fontSize: 15,
-                      ),
-                    ),
-                  ),
-                  buildCountrySelecter(),
-                  if (_countrySelected && !_showScore)
-                    Container(
-                      height: MediaQuery.of(context).size.height * 0.3,
-                      width: MediaQuery.of(context).size.width,
-                      margin: EdgeInsets.only(top: 20),
-                      child: StreamBuilder(
-                          stream: tournamentInstance
-                              .doc(tournamentId)
-                              .collection("countries")
-                              .doc(myCountry)
-                              .collection("Finals")
-                              .snapshots(),
-                          builder: (context, tsnapshot) {
-                            if (tsnapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return circularProgress();
-                            }
-                            //Data Snapshot
-                            var _loadeddata = tsnapshot.data.documents;
-                            var _loadeddataIndexdata;
-                            String team1;
-                            String team2;
-
-                            return ListView.builder(
-                                itemCount: _loadeddata.length,
-                                itemBuilder: (context, i) {
-                                  _loadeddataIndexdata = _loadeddata[i];
-                                  team1 = _loadeddataIndexdata.data()["Team1"];
-                                  team2 = _loadeddataIndexdata.data()["Team2"];
-                                  return InkWell(
-                                    onTap: () {
-                                      onGameCardTap(
-                                          context, _loadeddata[i].documentID);
-                                    },
-                                    child: GameCard(
-                                      team1: team1,
-                                      team2: team2,
-                                      Result1: _loadeddataIndexdata
-                                          .data()["Result $team1"],
-                                      Result2: _loadeddataIndexdata
-                                          .data()["Result $team2"],
-                                    ),
-                                  );
-                                });
-                          }),
-                    )
-                  else
-                    Container(
-                      width: double.infinity,
-                      height: MediaQuery.of(context).size.height * 0.3,
-                      child: Center(
-                          child: Text(
-                        "No country selected yet.",
-                        style: TextStyle(fontSize: 15),
-                      )),
-                    ),
-                  _showScore
-                      ? Column(
-                          children: <Widget>[
-                            SizedBox(
-                              height: 70,
-                            ),
-                            SilverWinnerListviewbuilder(
-                              countryList: countryList,
-                            ),
-                          ],
-                        )
-                      : SizedBox(
-                          height: 0,
-                        ),
-                  Builder(
-                    builder: (context) => FlatButton.icon(
-                        onPressed: () {
-                          if (!_silverFinished) {
-                            Scaffold.of(context).showSnackBar(SnackBar(
-                              content: Text(
-                                  'Silver phase finished. Points are being credited to athtlets...'),
-                            ));
-
-                            finishSilverPhase();
-                            calculateScore();
-                          } else {
-                            Scaffold.of(context).showSnackBar(SnackBar(
-                              content: Text('Silver Phase is already over...'),
-                            ));
-                          }
-                        },
-                        icon: Icon(Icons.navigate_next),
-                        label: Text(!_silverFinished
-                            ? "Finish Silver Phase"
-                            : "Silver Finished")),
-                  )
-                ],
+        : Container(
+          height: MediaQuery.of(context).size.height*0.82,
+          color: Colors.white,
+          child: Column(
+            children: <Widget>[
+              Container(
+                padding: EdgeInsets.only(top: 30, bottom: 20),
+                child: Text(
+                  "Silver Group",
+                  style:
+                      TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+                ),
               ),
-            ),
-          );
+              Container(
+                padding: EdgeInsets.only(bottom: 10),
+                child: Text(
+                  "Admin Functions",
+                  style:
+                      TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+              if (!_showScore)
+              Container(
+                padding: EdgeInsets.only(bottom: 20),
+                child: Text(
+                  "Step 1: Select Country",
+                  style: TextStyle(
+                    fontSize: 15,
+                  ),
+                ),
+              ),
+              if (!_showScore)
+              buildCountrySelecter(),
+              if (_countrySelected && !_showScore)
+                Container(
+                  height: MediaQuery.of(context).size.height * 0.3,
+                  width: MediaQuery.of(context).size.width,
+
+                  margin: EdgeInsets.only(top: 20),
+                  child: StreamBuilder(
+                      stream: tournamentInstance
+                          .doc(tournamentId)
+                          .collection("countries")
+                          .doc(myCountry)
+                          .collection("Finals")
+                          .snapshots(),
+                      builder: (context, tsnapshot) {
+                        if (tsnapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return circularProgress();
+                        }
+                        //Data Snapshot
+                        var _loadeddata = tsnapshot.data.documents;
+                        var _loadeddataIndexdata;
+                        String team1;
+                        String team2;
+
+                        return ListView.builder(
+                            itemCount: _loadeddata.length,
+                            itemBuilder: (context, i) {
+                              _loadeddataIndexdata = _loadeddata[i];
+                              team1 = _loadeddataIndexdata.data()["Team1"];
+                              team2 = _loadeddataIndexdata.data()["Team2"];
+                              return InkWell(
+                                onTap: () {
+                                  onGameCardTap(
+                                      context, _loadeddata[i].documentID);
+                                },
+                                child: GameCard(
+                                  team1: team1,
+                                  team2: team2,
+                                  Result1: _loadeddataIndexdata
+                                      .data()["Result $team1"],
+                                  Result2: _loadeddataIndexdata
+                                      .data()["Result $team2"],
+                                ),
+                              );
+                            });
+                      }),
+                )
+              else
+                Container(
+
+                  child:  !_showScore ?Container(
+                    width: double.infinity,
+
+                    height: MediaQuery.of(context).size.height * 0.3,
+                    child: Center(
+                        child: Text(
+                      "No country selected yet.",
+                      style: TextStyle(fontSize: 15),
+                    )),
+                  ): SizedBox(height:0),
+                ),
+              if (_showScore)
+                Column(
+                  children: <Widget>[
+                    SizedBox(height: 20,),
+                    SilverWinnerListviewbuilder(
+                      countryList: countryList,
+                    ),
+                  ],
+                ),
+              Builder(
+                builder: (context) => RaisedButton(
+                    onPressed: () {
+                      if (!_silverFinished) {
+                        Scaffold.of(context).showSnackBar(SnackBar(
+                          content: Text(
+                              'Silver phase finished. Points are being credited to athtlets...'),
+                        ));
+
+                        finishSilverPhase();
+                        calculateScore();
+                      } else {
+                        Scaffold.of(context).showSnackBar(SnackBar(
+                          content: Text('Silver Phase is already over...'),
+                        ));
+
+
+                      }
+                    },
+                    child: Text(!_silverFinished
+                        ? "Finish Silver Phase"
+                        : "Silver Finished")),
+              ),
+
+
+            ],
+          ),
+        );
   }
 }

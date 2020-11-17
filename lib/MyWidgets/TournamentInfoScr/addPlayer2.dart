@@ -59,7 +59,7 @@ class AddPlayer2 extends StatelessWidget {
                     children: <Widget>[
                       InkWell(
                           onTap: () {
-                            player2 = _loadeddataindexcontent.data()["googleName"];
+                            player2 = _loadeddataindexcontent.data()["username"];
                             player2photo = _loadeddataindexcontent.data()["photoUrl"];
                             player2ID = _loadeddataindexcontent.data()["userId"];
                             player2lvl = _loadeddataindexcontent.data()["achievedlvl"];
@@ -80,17 +80,38 @@ class AddPlayer2 extends StatelessWidget {
                               "player2lvl": player2lvl,
                             });
                           },
-                          child: CircleAvatar(
-                            radius: MediaQuery.of(context).size.width * 0.12,
-                            backgroundImage:
-                                NetworkImage(_loadeddataindexcontent.data()["photoUrl"]),
-                          )),
+                          child:                         ClipRRect(
+                            borderRadius: BorderRadius.circular(MediaQuery.of(context)
+                                .size
+                                .width *
+                                0.2,),
+                            child: FadeInImage.assetNetwork(
+                                fit: BoxFit.cover,
+                                width: MediaQuery.of(context)
+                                    .size
+                                    .width *
+                                    0.24,
+                                height: MediaQuery.of(context)
+                                    .size
+                                    .width *
+                                    0.24,
+                                fadeInDuration: Duration(seconds: 1),
+                                placeholder:
+                                'assets/images/volleychild.png',
+                                imageErrorBuilder: (context, url,
+                                    error) =>
+                                new Image.asset(
+
+                                    "assets/images/volleychild.png"),
+                                image:_loadeddataindexcontent.data()["photoUrl"]),
+                          ),
+                      ),
                       Container(
                         width: MediaQuery.of(context).size.width * 0.3,
                         child: Column(
                           children: <Widget>[
                             Text(
-                              _loadeddataindexcontent.data()["googleName"],
+                              _loadeddataindexcontent.data()["username"],
                               textAlign: TextAlign.center,
                               style: TextStyle( fontSize: 18,
                                 color: Colors.black.withOpacity(0.6),),

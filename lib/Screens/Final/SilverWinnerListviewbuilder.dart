@@ -13,7 +13,7 @@ class SilverWinnerListviewbuilder extends StatelessWidget {
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 20),
-      height: MediaQuery.of(context).size.height * 0.8,
+      height: MediaQuery.of(context).size.height * 0.5,
       width: MediaQuery.of(context).size.width,
       child: Column(
         children: <Widget>[
@@ -76,7 +76,7 @@ class SilverWinnerListviewbuilder extends StatelessWidget {
           ),
           Flexible(
             child: ListView.builder(
-                physics: const NeverScrollableScrollPhysics(),
+
                 shrinkWrap: true,
                 itemCount: countryList.length,
                 itemBuilder: (context, i) {
@@ -103,7 +103,7 @@ class SilverWinnerListviewbuilder extends StatelessWidget {
                         Container(
                           width: MediaQuery.of(context).size.width * 0.35,
                           child: Text(
-                            reversedcountryList[i]["currentTeam"],
+                            countryList[i]["currentTeam"],
                             style: TextStyle(
                                 fontSize: 18,
                                 color: Colors.black.withOpacity(0.8)),
@@ -114,7 +114,7 @@ class SilverWinnerListviewbuilder extends StatelessWidget {
                           width: 15,
                         ),
                         Text(
-                          reversedcountryList[i]["countryWins"].toString(),
+                          countryList[i]["countryWins"].toString(),
                           style: TextStyle(
                               fontSize: 18,
                               color: Colors.black.withOpacity(0.8)),
@@ -125,7 +125,7 @@ class SilverWinnerListviewbuilder extends StatelessWidget {
                         Container(
                           width: MediaQuery.of(context).size.width * 0.2,
                           child: Text(
-                              reversedcountryList[i]["accumulatedPoints"]
+                              countryList[i]["accumulatedPoints"]
                                   .toString(),
                               style: TextStyle(
                                   fontSize: 18,

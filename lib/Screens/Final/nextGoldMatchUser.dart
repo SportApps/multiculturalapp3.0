@@ -68,14 +68,28 @@ class _NextGoldMatchUserState extends State<NextGoldMatchUser> {
 
         if (futureMatchProgress == matchVortschritt) {
           _finished = true;
-          if (matchProgress == "Grand Finale") {
+          if (matchProgress == "Grand Finale"||matchProgress =="Gold - Over") {
             Navigator.of(context).popAndPushNamed(TournamentFinished.link);
             return;
           }
 
+          if (matchProgress =="Gold - Over") {
+            Navigator.of(context).popAndPushNamed(TournamentFinished.link);
+            return;
+          }
+
+
           //This function brings us to next screen and changes player Status.
           finishPhaseandGo();
-        } else {
+        }
+
+       else if (matchProgress =="Gold - Over") {
+          finishPhaseandGo();
+          Navigator.of(context).popAndPushNamed(TournamentFinished.link);
+          return;
+        }
+
+        else {
           print(matchProgress);
 
           _finished = false;
@@ -162,7 +176,10 @@ class _NextGoldMatchUserState extends State<NextGoldMatchUser> {
 
       final countryData = Provider.of<Countryinfos>(context, listen: false);
 
+
+
       final countryInfo = countryData.item;
+      print(countryInfo);
       myCountry = countryInfo[0].myCountry;
       myFlag = countryInfo[0].myFlag;
       // Here we load the next Match from Firebase

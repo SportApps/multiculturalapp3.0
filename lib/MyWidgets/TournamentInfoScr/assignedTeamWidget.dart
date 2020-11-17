@@ -8,10 +8,10 @@ import '../clippingClass.dart';
 
 class AssignedTeamWidget extends StatefulWidget {
 
-  AssignedTeamWidget({this.googleName,this.tournamentId,this.context});
+  AssignedTeamWidget({this.userName,this.tournamentId,this.context});
 
 
-  final String googleName;
+  final String userName;
 
   final String tournamentId;
 
@@ -52,6 +52,9 @@ class _AssignedTeamWidgetState extends State<AssignedTeamWidget> {
   }
 
 
+
+
+
   @override
   void initState() {
     // TODO: implement initState
@@ -75,7 +78,7 @@ class _AssignedTeamWidgetState extends State<AssignedTeamWidget> {
               child: Column(children: <Widget>[
 
                 Text(
-                  widget.googleName,
+                  widget.userName,
                   style: TextStyle(
                       color: Colors.black.withOpacity(0.8),
                       fontSize: 20,

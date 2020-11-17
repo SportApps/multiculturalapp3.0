@@ -66,43 +66,56 @@ class AddPlayer1 extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
                       InkWell(
-                        highlightColor: HexColor("#ffde03").withOpacity(0.3),
-                        onTap: () {
-                          player1 =
-                              _loadeddataindexcontent.data()["googleName"];
-                          player1photo =
-                              _loadeddataindexcontent.data()["photoUrl"];
-                          player1ID = _loadeddataindexcontent.data()["userId"];
-                          player1lvl =
-                              _loadeddataindexcontent.data()["achievedlvl"];
+                          highlightColor: HexColor("#ffde03").withOpacity(0.3),
+                          onTap: () {
+                            player1 =
+                                _loadeddataindexcontent.data()["username"];
+                            player1photo =
+                                _loadeddataindexcontent.data()["photoUrl"];
+                            player1ID =
+                                _loadeddataindexcontent.data()["userId"];
+                            player1lvl =
+                                _loadeddataindexcontent.data()["achievedlvl"];
 
-                          print(player1lvl);
-                          Navigator.of(context)
-                              .pushNamed(AddPlayer2.link, arguments: {
-                            "tournamentId": _tournamentID,
-                            "selectedCountry": _selectedCountry,
-                            "selectedCountryURL": selectedCountryURL,
-                            "player1Name": player1,
-                            "player1photo": player1photo,
-                            "player1lvl": player1lvl,
-                            "player1ID": player1ID
-                          });
-                        },
-                        child: CircleAvatar(
-                          radius: MediaQuery.of(context).size.width * 0.12,
-                          backgroundImage: NetworkImage(
-                              _loadeddataindexcontent.data()["photoUrl"]),
-                        ),
-                      ),
+                            print(player1lvl);
+                            Navigator.of(context)
+                                .pushNamed(AddPlayer2.link, arguments: {
+                              "tournamentId": _tournamentID,
+                              "selectedCountry": _selectedCountry,
+                              "selectedCountryURL": selectedCountryURL,
+                              "player1Name": player1,
+                              "player1photo": player1photo,
+                              "player1lvl": player1lvl,
+                              "player1ID": player1ID
+                            });
+                          },
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(
+                              MediaQuery.of(context).size.width * 0.2,
+                            ),
+                            child: FadeInImage.assetNetwork(
+                                fit: BoxFit.cover,
+                                width: MediaQuery.of(context).size.width * 0.24,
+                                height:
+                                    MediaQuery.of(context).size.width * 0.24,
+                                fadeInDuration: Duration(seconds: 1),
+                                placeholder: 'assets/images/volleychild.png',
+                                imageErrorBuilder: (context, url, error) =>
+                                    new Image.asset(
+                                        "assets/images/volleychild.png"),
+                                image:
+                                    _loadeddataindexcontent.data()["photoUrl"]),
+                          )),
                       Container(
                         width: MediaQuery.of(context).size.width * 0.3,
                         child: Column(
                           children: <Widget>[
                             Text(
-                              _loadeddataindexcontent.data()["googleName"],
+                              _loadeddataindexcontent.data()["username"],
                               textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.black.withOpacity(0.6),
-                                   fontSize: 18),
+                              style: TextStyle(
+                                  color: Colors.black.withOpacity(0.6),
+                                  fontSize: 18),
                               softWrap: true,
                             ),
                             SizedBox(
@@ -111,7 +124,9 @@ class AddPlayer1 extends StatelessWidget {
                             Text(
                               _loadeddataindexcontent.data()["achievedlvl"],
                               textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 14, color: HexColor("#ea070a").withOpacity(0.8)),
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  color: HexColor("#ea070a").withOpacity(0.8)),
                               softWrap: true,
                             ),
                           ],
@@ -159,7 +174,10 @@ class AddPlayer1 extends StatelessWidget {
                 child: Text(
                   "Choose an athlete!",
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,color: Colors.black.withOpacity(0.8)),
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black.withOpacity(0.8)),
                 )),
             buildPlayer1(
                 tournamentId, selectedCountry, selectedCountryURL, context),

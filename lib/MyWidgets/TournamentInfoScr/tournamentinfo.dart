@@ -1,25 +1,28 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
+import 'package:flutter/widgets.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:multiculturalapp/MyWidgets/TournamentInfoScr/SignedUpGridview.dart';
 import 'package:multiculturalapp/MyWidgets/TournamentInfoScr/assignedTeamWidget.dart';
 import 'package:multiculturalapp/MyWidgets/TournamentInfoScr/signedUpTeamsGridview.dart';
-import 'package:provider/provider.dart';
-
 import 'package:multiculturalapp/MyWidgets/TournamentInfoScr/teamoverview.dart';
-
 import 'package:multiculturalapp/MyWidgets/progress.dart';
-import 'package:multiculturalapp/MyWidgets/TournamentInfoScr/SignedUpGridview.dart';
+import 'package:multiculturalapp/MyWidgets/whatsAppMessageBox.dart';
 import 'package:multiculturalapp/Screens/Final/FinalsAdmin.dart';
 import 'package:multiculturalapp/Screens/addTournamentScreen.dart';
 import 'package:multiculturalapp/Screens/home.dart';
-import '../clippingClass.dart';
-
-import 'package:multiculturalapp/Screens/TournOnScreen.dart';
 import 'package:multiculturalapp/model/tournaments.dart';
 import 'package:multiculturalapp/model/users.dart';
+import 'package:provider/provider.dart';
+import 'package:smooth_star_rating/smooth_star_rating.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../clippingClass.dart';
 
 bool _isgoing;
 bool _isAdmin;
@@ -38,6 +41,9 @@ bool _isFemale;
 bool _isMixt;
 bool _isOpenSex;
 
+double organizerRanking;
+int rankingBase;
+
 int maxParticipants;
 int maxGenderParticipants;
 
@@ -55,19 +61,24 @@ String ranking;
 String points;
 String genderOnly;
 String tournamentId;
+String tournamentName;
 String userId;
 String userName;
 String photoUrl;
-String googleName;
+
 String date;
 String startingHour;
 String finishHour;
 String niveles;
 String location;
+String locationUrl;
 String price;
 String description;
 String organizerName;
+String organizerPhoto;
+String organizerId;
 String whatsAppNR;
+String formattedPhoneNumber;
 String myGender;
 String reservationDeniedString;
 
@@ -155,6 +166,8 @@ class Tournamentinfo extends StatefulWidget {
 }
 
 class _TournamentinfoState extends State<Tournamentinfo> {
+  final fbm = FirebaseMessaging();
+
   // 3.) _eventFullDialog which appears to user if Event is full
   void _eventFullDialog() {
     // flutter defined function
@@ -165,6 +178,8 @@ class _TournamentinfoState extends State<Tournamentinfo> {
         // return object of type Dialog
         return AlertDialog(
           title: new Text("Reservation not possible"),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
           content: Container(
             width: MediaQuery.of(context).size.width * 0.6,
             height: 120,
@@ -220,38 +235,76 @@ class _TournamentinfoState extends State<Tournamentinfo> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        double deviseHeight = MediaQuery.of(context).size.height;
+        double deviseWidth = MediaQuery.of(context).size.width;
         // return object of type Dialog
         return AlertDialog(
-          title: Text("You´re going!!"),
+          scrollable: true,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
           content: Container(
             width: MediaQuery.of(context).size.width * 0.6,
-            height: 120,
+            height: deviseHeight * 0.62,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Container(
+                  padding: EdgeInsets.only(top: deviseHeight * 0.005),
+                  child: Icon(
+                    MdiIcons.check,
+                    color: HexColor("4CAF50"),
+                    size: 50,
+                  ),
+                ),
+                Text("You are going!",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: HexColor("4CAF50"),
+                    )),
+                Container(
+                  padding: EdgeInsets.only(top: deviseHeight * 0.05),
                   width: double.infinity,
-                  child: Text("Next Steps"),
+                  child: Text(
+                    "IMPORTANT",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
                 ),
                 SizedBox(
-                  height: 5,
+                  height: deviseHeight * 0.01,
                 ),
-                Text("Whatsapp the organizer"),
-                Text("$organizerName: $whatsAppNR"),
-                Text("Secure your place by paying in advance."),
+                Text(
+                  "Secure your place by paying in advance (contact $organizerName).",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: deviseHeight * 0.05),
+                Text(
+                  "If you do not contact the organizer in the next hours you might loose your spot.",
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: deviseHeight * 0.035),
+                WhatsappMessageBox(
+                  organizerName: organizerName,
+                  whatsAppNR: whatsAppNR,
+                  whatsAppNRFormated: formattedPhoneNumber,
+                  createWhatsappMessage: _makeWhatsappMessage,
+                ),
+                SizedBox(height: deviseHeight * 0.025),
+                FlatButton(
+                  child: new Text(
+                    "Done",
+                    style: TextStyle(color: HexColor("4CAF50"), fontSize: 18),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
               ],
             ),
           ),
-          actions: <Widget>[
-            // usually buttons at the bottom of the dialog
-            FlatButton(
-              child: new Text("OK"),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
         );
       },
     );
@@ -261,17 +314,17 @@ class _TournamentinfoState extends State<Tournamentinfo> {
   checkIsAdmin() async {
     var userFire = await userInstance.doc(userId).get();
 
-    String lvl = userFire.data()["lvl"];
+    _isAdmin = userFire.data()["isAdmin"];
 
-    if (lvl == "Admin") {
-      _isAdmin = true;
-      userName = userFire.data()["displayName"];
+    if (_isAdmin == null) {
+      _isAdmin = false;
+    }
 
-      print(userName);
-      print(organizerName);
+    if (_isAdmin) {
+      userName = userFire.data()["username"];
+
       if (organizerName == userName) {
         _isEventOrg = true;
-        print("We are event organizer");
       }
     }
   }
@@ -293,25 +346,21 @@ class _TournamentinfoState extends State<Tournamentinfo> {
             else
               {
                 _isgoing = false,
-                _isloading = false,
               }
           },
         )
         .then((value) {
-      checkHasTeam(tournamentId, userId);
-    }).then((value) {
-      setState(() {
-        _isloading = false;
-        print(userHasTeam);
-      });
-    }).catchError(
-      (fail) => {
-        print(fail)
-        // Either
-        // 1. failed to read due to some reason such as permission denied ( online )
-        // 2. failed because document does not exists on local storage ( offline )
-      },
-    );
+          checkHasTeam(tournamentId, userId);
+        })
+        .then((value) {})
+        .catchError(
+          (fail) => {
+            print(fail)
+            // Either
+            // 1. failed to read due to some reason such as permission denied ( online )
+            // 2. failed because document does not exists on local storage ( offline )
+          },
+        );
   }
 
   // 6.) checkHasTeam Function to see if User already has a Team.
@@ -429,9 +478,391 @@ class _TournamentinfoState extends State<Tournamentinfo> {
     }
   }
 
+  Future<void> _makeWhatsappMessage(String number) async {
+    if (await canLaunch("https://wa.me/${number}?text=Hello")) {
+      if (Platform.isIOS) {
+        return "whatsapp://wa.me/${number}?text=Hello $organizerName, %0a %0a I would like to attend the event *$tournamentName*. %0a %0a UserName: $userName, %0a Date: $date,  %0a Hour: $startingHour, %0a Looking forward to join u guys!  %0a$userName";
+      } else {
+        await launch(
+            "https://wa.me/${number}?text=Hello $organizerName, %0a %0a I would like to attend the event *$tournamentName*. %0a %0a   UserName: $userName, %0a   Date: $date,  %0a   Hour: $startingHour, %0a%0aLooking forward to join u guys!  %0a$userName");
+      }
+    }
+  }
+
+  Stack buildSeperationLine() {
+    return Stack(
+      children: [
+        Container(width: double.infinity, height: 2, color: Colors.white),
+        Container(
+          color: Colors.black.withOpacity(0.05),
+          height: 2,
+          width: double.infinity,
+          margin: EdgeInsets.symmetric(horizontal: 40),
+        ),
+      ],
+    );
+  }
+
+  Column buildImportantInfoElement(double infofontSize) {
+    return Column(children: <Widget>[
+      // Info Part
+      Container(
+        color: Colors.white,
+        padding: EdgeInsets.only(left: 40, right: 40, top: 10, bottom: 20),
+        child: Column(
+          children: <Widget>[
+            Text(
+              "Great!",
+              style: TextStyle(
+                  fontSize: infofontSize,
+                  fontWeight: FontWeight.bold,
+                  color: HexColor("#40c903")),
+            ),
+            Text(
+              "We are looking forward to play with you! If you don´t have a partner, we can find one for you at the tourmant..",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  height: 1.5,
+                  fontSize: infofontSize,
+                  fontWeight: FontWeight.bold,
+                  color: HexColor("#40c903")),
+            ),
+            SizedBox(
+              height: 20,
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.only(bottom: 10),
+                    child: Text(
+                      "Important:",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    )),
+                Text(
+                  "Please arrive on time and",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: infofontSize),
+                ),
+                Text(
+                  "bring the money fitting",
+                  style: TextStyle(fontSize: infofontSize),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+            SizedBox(
+              height: 20,
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  "Contact the organizer 4 hours before the start of the Tournament for exact location info.",
+                  style: TextStyle(fontSize: infofontSize),
+                ),
+              ],
+            )
+          ],
+        ),
+      ),
+    ]);
+  }
+
+  Container buildAddTeamsButton() {
+    return Container(
+      margin: EdgeInsets.only(
+          left: MediaQuery.of(context).size.width * 0.3, top: 20),
+      height: 40,
+      decoration: BoxDecoration(
+        color: HexColor("#ffde03"),
+        borderRadius: BorderRadius.circular(19),
+        border: Border.all(width: 1, color: Colors.black12),
+        boxShadow: [
+          BoxShadow(
+            color: HexColor("#000000").withOpacity(0.5),
+            offset: Offset(0.0, 2.0), //(x,y)
+            blurRadius: 4.0,
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      child: FlatButton.icon(
+        onPressed: () {
+          checkGameStatus();
+        },
+        label: Text(
+          "Add Teams",
+          style: TextStyle(color: Colors.black),
+        ),
+        icon: Icon(
+          MdiIcons.accountPlus,
+          color: Colors.black,
+        ),
+      ),
+    );
+  }
+
+  Container buildTimeContainer(double iconSize, double standardContainerhight) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          SizedBox(width: 20),
+          Icon(
+            MdiIcons.clockOutline,
+            size: iconSize,
+          ),
+          SizedBox(
+            width: 10,
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: EdgeInsets.only(bottom: 5),
+                child: Text(
+                  date,
+                  style: TextStyle(
+                      fontSize: 18, color: Colors.black.withOpacity(0.8)),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 3,
+                ),
+              ),
+              Container(
+                height: standardContainerhight,
+                child: Text(
+                  "$startingHour - $finishHour",
+                  style: TextStyle(
+                      fontSize: 12, color: Colors.black.withOpacity(0.6)),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 3,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Container buildDescriptionContainer(
+      double descriptionContainerHeigt, double infofontSize) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 10),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 19),
+        height: descriptionContainerHeigt,
+        width: double.infinity,
+        child: Text(
+          description,
+          style: TextStyle(
+              fontSize: infofontSize, color: Colors.black.withOpacity(0.8)),
+          overflow: TextOverflow.ellipsis,
+          maxLines: 4,
+        ),
+      ),
+    );
+  }
+
+  Container buildEditandCancelButtons(bool isgoing) {
+    return Container(
+      color:
+          isgoing ? HexColor("#000000").withOpacity(0.05) : Colors.transparent,
+      padding: EdgeInsets.only(bottom: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          Container(
+            height: 40,
+            decoration: BoxDecoration(
+              color: HexColor("#F5F4F4"),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(width: 1, color: Colors.black12),
+              boxShadow: [
+                BoxShadow(
+                  color: HexColor("#000000").withOpacity(0.5),
+                  offset: Offset(0.0, 2.0), //(x,y)
+                  blurRadius: 4.0,
+                  spreadRadius: 0,
+                ),
+              ],
+            ),
+            child: FlatButton.icon(
+              label: Text(
+                "Edit",
+                style: TextStyle(color: Colors.black),
+              ),
+              icon: Icon(
+                Icons.edit,
+                color: Colors.black,
+              ),
+              onPressed: () {
+                print(tournamentId);
+                Navigator.of(context).pushNamed(AddTournamentScreen.link,
+                    arguments: {
+                      "firstLoad": false,
+                      "tournamentId": tournamentId
+                    });
+              },
+            ),
+          ),
+          Container(
+            height: 40,
+            decoration: BoxDecoration(
+              color: HexColor("#F5F4F4"),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(width: 1, color: Colors.black12),
+              boxShadow: [
+                BoxShadow(
+                  color: HexColor("#000000").withOpacity(0.5),
+                  offset: Offset(0.0, 2.0), //(x,y)
+                  blurRadius: 4.0,
+                  spreadRadius: 0,
+                ),
+              ],
+            ),
+            child: FlatButton.icon(
+              label: Text(
+                "Cancel",
+                style: TextStyle(color: Colors.black),
+              ),
+              icon: Icon(
+                Icons.cancel,
+                color: Colors.black,
+              ),
+              onPressed: () {
+                showCancelDialog(context);
+              },
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  InkWell buildContactOrganizerElement() {
+    return InkWell(
+      onTap: () async {
+        await _makeWhatsappMessage(whatsAppNR);
+      },
+      child: Container(
+        padding:
+            EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.04),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(
+                MediaQuery.of(context).size.width * 0.2,
+              ),
+              child: FadeInImage.assetNetwork(
+                  fit: BoxFit.cover,
+                  width: MediaQuery.of(context).size.width * 0.225,
+                  height: MediaQuery.of(context).size.width * 0.225,
+                  fadeInDuration: Duration(seconds: 1),
+                  placeholder: 'assets/images/volleychild.png',
+                  imageErrorBuilder: (context, url, error) =>
+                      new Image.asset("assets/images/volleychild.png"),
+                  image: organizerPhoto),
+            ),
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.04,
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      "Organizer: ",
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black.withOpacity(0.8)),
+                    ),
+                    Text(
+                      organizerName,
+                      style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.black.withOpacity(0.8),
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                Text(
+                  formattedPhoneNumber,
+                  style: TextStyle(
+                    fontSize: 15,
+                  ),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                SmoothStarRating(
+                    allowHalfRating: false,
+                    onRated: (v) {},
+                    starCount: 5,
+                    rating: organizerRanking,
+                    size: 14.0,
+                    isReadOnly: true,
+                    color: HexColor("#0909EB"),
+                    borderColor: HexColor("#0909EB"),
+                    spacing: 0.0),
+                Text(
+                  "Ratings: $rankingBase:",
+                  style: TextStyle(fontSize: 12),
+                )
+              ],
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  getOrganizerRanking() async {
+    var FireRating = await FirebaseFirestore.instance
+        .collection("orgaRatings")
+        .doc(organizerId)
+        .get();
+
+    print(" Organizer id is $organizerId");
+    organizerRanking = FireRating.data()["average"];
+
+    rankingBase = FireRating.data()["base"];
+
+    setState(() {
+      _isloading = false;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+
+    // Suscribes user to Notifications about specific tournament.
+
+    fbm.requestNotificationPermissions();
+    fbm.configure(
+      onMessage: (msg) {
+        String content = msg["notification"];
+
+        print(msg);
+        print(content);
+        return;
+      },
+      onLaunch: (msg) {
+        print(msg);
+        return;
+      },
+      onResume: (msg) {
+        print(msg);
+        return;
+      },
+    );
 
     _isgoing = false;
     userHasTeam = false;
@@ -453,6 +884,7 @@ class _TournamentinfoState extends State<Tournamentinfo> {
         final tournamentData = Provider.of<Tournaments>(context, listen: false);
         final currentTournament = tournamentData.item;
         tournamentId = currentTournament[0].tournamentid;
+        tournamentName = currentTournament[0].name;
         maxParticipants = currentTournament[0].maxParticipants;
         maxGenderParticipants = (maxParticipants / 2).toInt();
         genderOnly = currentTournament[0].genderOnly;
@@ -460,11 +892,25 @@ class _TournamentinfoState extends State<Tournamentinfo> {
         startingHour = currentTournament[0].startingHour;
         finishHour = currentTournament[0].finishHour;
         niveles = currentTournament[0].niveles;
+
+        locationUrl = currentTournament[0].locationUrl;
         location = currentTournament[0].location;
+
         price = currentTournament[0].price;
         description = currentTournament[0].description;
         organizerName = currentTournament[0].organizerName;
+        organizerPhoto = currentTournament[0].organizerPhoto;
+
+        organizerId = currentTournament[0].organizerId;
         whatsAppNR = currentTournament[0].whatsAppNR;
+
+        formattedPhoneNumber = whatsAppNR.substring(0, 3) +
+            " " +
+            whatsAppNR.substring(3, 6) +
+            " " +
+            whatsAppNR.substring(6, 9) +
+            " " +
+            whatsAppNR.substring(9, whatsAppNR.length);
 
         _isMale = false;
         _isFemale = false;
@@ -487,7 +933,7 @@ class _TournamentinfoState extends State<Tournamentinfo> {
         // here we access the data from the listener.
         final currentUser = userData.item;
         userId = currentUser[0].id;
-        googleName = currentUser[0].username;
+        userName = currentUser[0].username;
         photoUrl = currentUser[0].photoUrl;
         achievedlvl = currentUser[0].achievedLvl;
         myGender = currentUser[0].gender;
@@ -495,8 +941,7 @@ class _TournamentinfoState extends State<Tournamentinfo> {
 
         handleDocExist(tournamentId, userId);
         checkBlockReservation();
-
-        _isloading = false;
+        getOrganizerRanking();
       });
     });
   }
@@ -521,6 +966,7 @@ class _TournamentinfoState extends State<Tournamentinfo> {
     // set up the AlertDialog
     AlertDialog alert = AlertDialog(
       title: Text("Cancel Tournament"),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
       content: Text(
           "Are you sure? The tournament will be deleted and will not be available anymore."),
       actions: [
@@ -554,7 +1000,7 @@ class _TournamentinfoState extends State<Tournamentinfo> {
       String tournamentId,
       String userId,
       String photoUrl,
-      String googleName,
+      String userName,
     ) async {
       tournamentinstance
           .doc(tournamentId)
@@ -564,11 +1010,12 @@ class _TournamentinfoState extends State<Tournamentinfo> {
         {
           "userId": userId,
           "photoUrl": photoUrl,
-          "googleName": googleName,
+          "username": userName,
           "achievedlvl": achievedlvl,
           "gender": myGender,
           "hasTeam": false,
           "paymentStatus": false,
+          "likedSomeOne": false,
         },
       );
     }
@@ -596,6 +1043,8 @@ class _TournamentinfoState extends State<Tournamentinfo> {
           // return object of type Dialog
           return AlertDialog(
             title: Text("Confirm Sign Out"),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20.0)),
             content: Text(
                 "You have already payed. Are you sure you want to cancel? You will loose the amount payed. For questions please contact in time the organizer."),
             actions: <Widget>[
@@ -612,6 +1061,8 @@ class _TournamentinfoState extends State<Tournamentinfo> {
                 onPressed: () {
                   setState(() {
                     _isgoing = !_isgoing;
+
+                    fbm.unsubscribeFromTopic(tournamentName);
                   });
 
                   handleSignOutEvent(tournamentId, userId);
@@ -625,569 +1076,246 @@ class _TournamentinfoState extends State<Tournamentinfo> {
       );
     }
 
+    launchLocationUrl() async {
+      print(locationUrl);
+      final String encodedURl = Uri.encodeFull(locationUrl);
+      print(encodedURl);
+      if (await canLaunch(encodedURl)) {
+        await launch(encodedURl);
+      } else {
+        print('Could not launch $encodedURl');
+        throw 'Could not launch $encodedURl';
+      }
+    }
+
+    Container buildSignInElement() {
+      return Container(
+        padding: EdgeInsets.symmetric(vertical: 25),
+        width: double.infinity,
+        color: Colors.white,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: <Widget>[
+            _isgoing
+                ? Text(
+                    "You are going",
+                    style: TextStyle(
+                        fontSize: 18,
+                        color: HexColor("#206601").withOpacity(0.8),
+                        fontWeight: FontWeight.bold),
+                  )
+                : Text(
+                    "You are not going",
+                    style: TextStyle(
+                        fontSize: 16,
+                        color: HexColor("ea070a").withOpacity(0.8),
+                        fontWeight: FontWeight.bold),
+                  ),
+            _isgoing
+                ? Text(
+                    "CHANGE",
+                    style: TextStyle(
+                      color: HexColor("#206601").withOpacity(0.8),
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )
+                : Text(
+                    "CHANGE",
+                    style: TextStyle(
+                      color: HexColor("#ea070a").withOpacity(0.8),
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+            _isgoing
+                ? IconButton(
+                    iconSize: 50,
+                    icon: Icon(
+                      Icons.check_circle,
+                      color: HexColor("#206601").withOpacity(0.8),
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        if (userHasTeam == false || userHasTeam == null) {
+                          if (_userhasPayed) {
+                            signOutDialog(tournamentId, userId);
+                          } else {
+                            handleSignOutEvent(tournamentId, userId);
+                            _isgoing = !_isgoing;
+                          }
+                        } else {
+                          print(
+                              "Else Case. Isogoing is $_isgoing and userHasTeam is $userHasTeam");
+                        }
+                      });
+                    },
+                  )
+                : IconButton(
+                    iconSize: 50,
+                    icon: Icon(Icons.check_circle,
+                        color: HexColor("ea070a").withOpacity(0.8)),
+                    onPressed: () {
+                      setState(
+                        () {
+                          if (reservationBlocked) {
+                            print(
+                                "Event is full, reservation was not possible.");
+                            _eventFullDialog();
+                          } else {
+                            _isgoing = !_isgoing;
+                            handleSignInEvent(
+                                tournamentId, userId, photoUrl, userName);
+                            welcomeDialog();
+                            fbm.subscribeToTopic(tournamentName);
+                          }
+                        },
+                      );
+                    },
+                  )
+          ],
+        ),
+      );
+    }
+
+    //
+    //
+    // HERE THE BUILD FUNCTION STARTS
+    //
     return _isloading
+        //
+        // If data is loading, show:
         ? Container(
-            height: MediaQuery.of(context).size.height * 0.9,
+            height: MediaQuery.of(context).size.height,
             width: double.infinity,
             color: Colors.white,
             child: Center(child: circularProgress()))
-        :
-            Container(
-                color: HexColor("#ffe664"),
-                child: Column(
-                  children: <Widget>[
-                    !userHasTeam ? Container(
-                      padding:
-                          EdgeInsets.symmetric(vertical: 25, horizontal: 20),
-                      width: double.infinity,
+        //
+        // If data is loaded, show:
+        : Container(
+            color: HexColor("#ffe664"),
+            child: Column(
+              children: <Widget>[
+                //
+                // If user has NO TEAM, show SIGN IN/OUT Element (YOu are going/not going+button):
+                if (!userHasTeam) buildSignInElement(),
+                //
+                // If athlet is going, we make a seperation line between isgoing button and Event Info.
+                if (_isgoing) buildSeperationLine(),
+
+                // Space maker between the seperation Line and the Important Text
+                Container(height: 20, color: Colors.white),
+
+                //
+                // Aditional Info that appears if athlet goes and does not have a team.
+
+                if (_isgoing && !userHasTeam)
+                  buildImportantInfoElement(infofontSize),
+
+                //
+                // If user has a team and waits for Tournament to begin, call AssignedTeamWidget Class
+                if (userHasTeam)
+                  AssignedTeamWidget(
+                    userName: userName,
+                    context: context,
+                    tournamentId: tournamentId,
+                  ),
+
+                Column(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: MediaQuery.of(context).size.width * 0.1),
                       color: Colors.white,
-                      child:
-                          // Case that Player is assigned to team and ready to Start Tournament.
+                      child: Column(children: [
+                        Container(
+                          color: _isgoing
+                              ? HexColor("#000000").withOpacity(0.05)
+                              : Colors.white,
+                          child: Column(
+                            children: <Widget>[
+                              //
+                              // If user is Admin, he needs to be able to add Teams.
+                              if (_isAdmin) buildAddTeamsButton(),
 
-                          // Case that Player is not assigned to team and can still edit his reservation.
-                          Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: <Widget>[
-                          _isgoing
-                              ? Text(
-                                  "You are going",
-                                  style: TextStyle(
-                                      fontSize: 18,
-                                      color:
-                                          HexColor("#206601").withOpacity(0.8),
-                                      fontWeight: FontWeight.bold),
-                                )
-                              : Text(
-                                  "You are not going",
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      color:
-                                          HexColor("ea070a").withOpacity(0.8),
-                                      fontWeight: FontWeight.bold),
-                                ),
-                          _isgoing
-                              ? Text(
-                                  "CHANGE",
-                                  style: TextStyle(
-                                    color: HexColor("#206601").withOpacity(0.8),
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
+                              // Thos are the Info elements like tournament - lvl - location - price etc.
+                              buildContainer(
+                                  Icon(
+                                    MdiIcons.arrowTopRight,
+                                    size: iconSize,
                                   ),
-                                )
-                              : Text(
-                                  "CHANGE",
-                                  style: TextStyle(
-                                    color: HexColor("#ea070a").withOpacity(0.8),
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                          _isgoing
-                              ? IconButton(
-                                  iconSize: 50,
-                                  icon: Icon(
-                                    Icons.check_circle,
-                                    color: HexColor("#206601").withOpacity(0.8),
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      if (userHasTeam == false ||
-                                          userHasTeam == null) {
-                                        if (_userhasPayed) {
-                                          signOutDialog(tournamentId, userId);
-                                        } else {
-                                          handleSignOutEvent(
-                                              tournamentId, userId);
-                                          _isgoing = !_isgoing;
-                                        }
-                                      } else {
-                                        print(
-                                            "Else Case. Isogoing is $_isgoing and userHasTeam is $userHasTeam");
-                                      }
-                                    });
-                                  },
-                                )
-                              : IconButton(
-                                  iconSize: 50,
-                                  icon: Icon(Icons.check_circle,
-                                      color:
-                                          HexColor("ea070a").withOpacity(0.8)),
-                                  onPressed: () {
-                                    setState(
-                                      () {
-                                        if (reservationBlocked) {
-                                          print(
-                                              "Event is full, reservation was not possible.");
-                                          _eventFullDialog();
-                                        } else {
-                                          _isgoing = !_isgoing;
-                                          handleSignInEvent(tournamentId,
-                                              userId, photoUrl, googleName);
-                                          welcomeDialog();
-                                        }
-                                      },
-                                    );
-                                  },
-                                )
-                        ],
-                      ),
-                    ) : SizedBox(height:0),
-                    // If athlet is going, we make a seperation line between isgoing button and Event Info.
-                    _isgoing
-                        ? Stack(
-                            children: [
-                              Container(
-                                  width: double.infinity,
-                                  height: 2,
-                                  color: Colors.white),
-                              Container(
-                                color: Colors.black.withOpacity(0.05),
-                                height: 2,
-                                width: double.infinity,
-                                margin: EdgeInsets.symmetric(horizontal: 40),
+                                  niveles,
+                                  standardContainerhight,
+                                  context),
+                              GestureDetector(
+                                onTap: () {
+                                  launchLocationUrl();
+                                },
+                                child: buildContainer(
+                                    Icon(
+                                      Icons.place,
+                                      size: iconSize,
+                                    ),
+                                    location,
+                                    standardContainerhight,
+                                    context),
                               ),
+                              buildContainer(
+                                  Icon(
+                                    Icons.credit_card,
+                                    size: iconSize,
+                                  ),
+                                  "$price€",
+                                  standardContainerhight,
+                                  context),
+                              buildTimeContainer(
+                                  iconSize, standardContainerhight),
+                              buildDescriptionContainer(
+                                  descriptionContainerHeigt, infofontSize),
                             ],
-                          )
-                        : SizedBox(
-                            height: 0,
                           ),
-                    Container(height: 20, color: Colors.white),
-                    // Aditional Info that appears if athlet goes.
-                    _isgoing &&!userHasTeam
-                        ? Column(children: <Widget>[
-                            // Info Part
-                            Container(
-                              color: Colors.white,
-                              padding: EdgeInsets.symmetric(horizontal: 40),
-                              height: MediaQuery.of(context).size.height * 0.5,
-                              child: Column(
-                                children: <Widget>[
-                                  Text(
-                                    "Great!",
-                                    style: TextStyle(
-                                        fontSize: infofontSize,
-                                        fontWeight: FontWeight.bold,
-                                        color: HexColor("#40c903")),
-                                  ),
-                                  Text(
-                                    "We are looking forward to play with you! If you don´t have a partner, we can find one for you at the tourmant..",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                        height: 1.5,
-                                        fontSize: infofontSize,
-                                        fontWeight: FontWeight.bold,
-                                        color: HexColor("#40c903")),
-                                  ),
-                                  SizedBox(
-                                    height: 20,
-                                  ),
-                                   Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: <Widget>[
-                                      Container(
-                                          width: double.infinity,
-                                          padding: EdgeInsets.only(bottom: 10),
-                                          child: Text(
-                                            "Important:",
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold),
-                                          )),
-                                      Text(
-                                        "Please arrive on time and",
-                                        textAlign: TextAlign.center,
-                                        style:
-                                            TextStyle(fontSize: infofontSize),
-                                      ),
-                                      Text(
-                                        "bring the money fitting",
-                                        style:
-                                            TextStyle(fontSize: infofontSize),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
-                                  ) ,
-                                  SizedBox(
-                                    height: 20,
-                                  ),
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: <Widget>[
-                                      Text(
-                                        "Contact the organizer 4 hours before the start of the Tournament for exact location info.",
-                                        style:
-                                            TextStyle(fontSize: infofontSize),
-                                      ),
-                                    ],
-                                  )
-                                ],
-                              ),
-                            ),
-                          ])
-                        : SizedBox(
-                            height: 0,
-                          ),
-                    userHasTeam? AssignedTeamWidget(googleName: googleName,context: context,tournamentId: tournamentId,):SizedBox(height:0),
+                        ),
+                        // If we are the event organizer - Display Edit and Cancel Buttons.
+                        if (_isEventOrg) buildEditandCancelButtons(_isgoing),
+
+                        // Seperator between Info Box and Organizer info.
+                        buildSeperationLine(),
+
+                        // Organizer Info
+                        buildContactOrganizerElement(),
+
+                        // This SizedBox exists to avoid an Overlap with the Clippath.
+                      ]),
+                    ),
+                    // Clipping in the end of the View for the cool visual element.
                     ClipPath(
-                      clipper: ClippingClass(),
-                      child: Column(
-                        children: [
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                                horizontal:
-                                    MediaQuery.of(context).size.width * 0.1),
-                            color: Colors.white,
-                            child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    color: _isgoing
-                                        ? HexColor("#000000").withOpacity(0.05)
-                                        : Colors.white,
-                                    child: Column(
-                                      children: <Widget>[
-                                        _isAdmin
-                                            ? Container(
-                                                margin: EdgeInsets.only(
-                                                    left: MediaQuery.of(context)
-                                                            .size
-                                                            .width *
-                                                        0.3),
-                                                height: 40,
-                                                decoration: BoxDecoration(
-                                                  color: HexColor("#ffde03"),
-                                                  borderRadius:
-                                                      BorderRadius.circular(19),
-                                                  border: Border.all(
-                                                      width: 1,
-                                                      color: Colors.black12),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: HexColor("#000000")
-                                                          .withOpacity(0.5),
-                                                      offset: Offset(
-                                                          0.0, 2.0), //(x,y)
-                                                      blurRadius: 4.0,
-                                                      spreadRadius: 0,
-                                                    ),
-                                                  ],
-                                                ),
-                                                child: FlatButton.icon(
-                                                  onPressed: () {
-                                                    checkGameStatus();
-                                                  },
-                                                  label: Text(
-                                                    "Add Teams",
-                                                    style: TextStyle(
-                                                        color: Colors.black),
-                                                  ),
-                                                  icon: Icon(
-                                                    MdiIcons.accountPlus,
-                                                    color: Colors.black,
-                                                  ),
-                                                ),
-                                              )
-                                            : SizedBox(
-                                                height: 0,
-                                              ),
-                                        buildContainer(
-                                            Icon(
-                                              MdiIcons.arrowTopRight,
-                                              size: iconSize,
-                                            ),
-                                            niveles,
-                                            standardContainerhight,
-                                            context),
-                                        buildContainer(
-                                            Icon(
-                                              Icons.place,
-                                              size: iconSize,
-                                            ),
-                                            location,
-                                            standardContainerhight,
-                                            context),
-                                        buildContainer(
-                                            Icon(
-                                              Icons.credit_card,
-                                              size: iconSize,
-                                            ),
-                                            "$price€",
-                                            standardContainerhight,
-                                            context),
-                                        Container(
-                                          margin: EdgeInsets.symmetric(
-                                              vertical: 10),
-                                          child: Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.center,
-                                            children: <Widget>[
-                                              SizedBox(width: 20),
-                                              Icon(
-                                                MdiIcons.clockOutline,
-                                                size: iconSize,
-                                              ),
-                                              SizedBox(
-                                                width: 10,
-                                              ),
-                                              Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Container(
-                                                    padding: EdgeInsets.only(
-                                                        bottom: 5),
-                                                    child: Text(
-                                                      date,
-                                                      style: TextStyle(
-                                                          fontSize: 18,
-                                                          color: Colors.black
-                                                              .withOpacity(
-                                                                  0.8)),
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      maxLines: 3,
-                                                    ),
-                                                  ),
-                                                  Container(
-                                                    height:
-                                                        standardContainerhight,
-                                                    child: Text(
-                                                      "$startingHour - $finishHour",
-                                                      style: TextStyle(
-                                                          fontSize: 12,
-                                                          color: Colors.black
-                                                              .withOpacity(
-                                                                  0.6)),
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      maxLines: 3,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        Container(
-                                          color: _isgoing
-                                              ? HexColor("#000000")
-                                                  .withOpacity(0.05)
-                                              : Colors.white,
-                                          padding: EdgeInsets.symmetric(
-                                              vertical: 10),
-                                          child: Container(
-                                            padding: EdgeInsets.symmetric(
-                                                horizontal: 19),
-                                            height: descriptionContainerHeigt,
-                                            width: double.infinity,
-                                            child: Text(
-                                              description,
-                                              style: TextStyle(
-                                                  fontSize: infofontSize,
-                                                  color: Colors.black
-                                                      .withOpacity(0.8)),
-                                              overflow: TextOverflow.ellipsis,
-                                              maxLines: 3,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  // Description
-                                  _isEventOrg
-                                      ? Container(
-                                          margin: EdgeInsets.only(bottom: 20),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceEvenly,
-                                            children: <Widget>[
-                                              Container(
-                                                height: 40,
-                                                decoration: BoxDecoration(
-                                                  color: HexColor("#F5F4F4"),
-                                                  borderRadius:
-                                                      BorderRadius.circular(20),
-                                                  border: Border.all(
-                                                      width: 1,
-                                                      color: Colors.black12),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: HexColor("#000000")
-                                                          .withOpacity(0.5),
-                                                      offset: Offset(
-                                                          0.0, 2.0), //(x,y)
-                                                      blurRadius: 4.0,
-                                                      spreadRadius: 0,
-                                                    ),
-                                                  ],
-                                                ),
-                                                child: FlatButton.icon(
-                                                  label: Text(
-                                                    "Edit",
-                                                    style: TextStyle(
-                                                        color: Colors.black),
-                                                  ),
-                                                  icon: Icon(
-                                                    Icons.edit,
-                                                    color: Colors.black,
-                                                  ),
-                                                  onPressed: () {
-                                                    print(tournamentId);
-                                                    Navigator.of(context)
-                                                        .pushNamed(
-                                                            AddTournamentScreen
-                                                                .link,
-                                                            arguments: {
-                                                          "firstLoad": false,
-                                                          "tournamentId":
-                                                              tournamentId
-                                                        });
-                                                  },
-                                                ),
-                                              ),
-                                              Container(
-                                                height: 40,
-                                                decoration: BoxDecoration(
-                                                  color: HexColor("#F5F4F4"),
-                                                  borderRadius:
-                                                      BorderRadius.circular(20),
-                                                  border: Border.all(
-                                                      width: 1,
-                                                      color: Colors.black12),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: HexColor("#000000")
-                                                          .withOpacity(0.5),
-                                                      offset: Offset(
-                                                          0.0, 2.0), //(x,y)
-                                                      blurRadius: 4.0,
-                                                      spreadRadius: 0,
-                                                    ),
-                                                  ],
-                                                ),
-                                                child: FlatButton.icon(
-                                                  label: Text(
-                                                    "Cancel",
-                                                    style: TextStyle(
-                                                        color: Colors.black),
-                                                  ),
-                                                  icon: Icon(
-                                                    Icons.cancel,
-                                                    color: Colors.black,
-                                                  ),
-                                                  onPressed: () {
-                                                    showCancelDialog(context);
-                                                  },
-                                                ),
-                                              )
-                                            ],
-                                          ),
-                                        )
-                                      : SizedBox(
-                                          height: 0,
-                                        ),
-                                  Container(
-                                    height: 2,
-                                    width: double.infinity,
-                                    color: Colors.black.withOpacity(0.05),
-                                    padding:
-                                        EdgeInsets.symmetric(horizontal: 50),
-                                  ),
-                                  Container(
-                                    padding: EdgeInsets.only(
-                                        top:
-                                            MediaQuery.of(context).size.height *
-                                                0.04),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          MdiIcons.accountCircle,
-                                          size: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.125,
-                                        ),
-                                        SizedBox(
-                                          width: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.025,
-                                        ),
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                Text(
-                                                  "Organizer: ",
-                                                  style: TextStyle(
-                                                      fontSize: 15,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: Colors.black
-                                                          .withOpacity(0.8)),
-                                                ),
-                                                Text(
-                                                  organizerName,
-                                                  style: TextStyle(
-                                                      fontSize: 15,
-                                                      color: Colors.black
-                                                          .withOpacity(0.8)),
-                                                ),
-                                              ],
-                                            ),
-                                            Row(
-                                              children: [
-                                                Text(
-                                                  "WhatsApp: ",
-                                                  style: TextStyle(
-                                                      fontSize: 15,
-                                                      fontWeight:
-                                                          FontWeight.bold),
-                                                ),
-                                                Text(
-                                                  whatsAppNR,
-                                                  style: TextStyle(
-                                                    fontSize: 15,
-                                                  ),
-                                                ),
-                                              ],
-                                            )
-                                          ],
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    height: 10,
-                                  ),
-
-                                  SizedBox(
-                                    height: 70,
-                                  )
-                                ]),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SignedUpGridview(
-                      tournamentId: tournamentId,
-                      isloading: _isloading,
-                      isAdmin: _isAdmin,
-                    ),
-
-                    SignedUpTeamsGridview(
-                      tournamentId: tournamentId,
-                      isloading: _isloading,
-                    ),
+                        clipper: ClippingClass(),
+                        child: Container(
+                          height: 90,
+                          width: double.infinity,
+                          color: Colors.white,
+                        ))
                   ],
                 ),
-              );
+                SignedUpGridview(
+                  tournamentId: tournamentId,
+                  isloading: _isloading,
+                  isAdmin: _isAdmin,
+                  organizerName: organizerName,
+                  eventName: tournamentName,
+                  date: date,
+                  time: startingHour,
+                  requestUserName: userName,
+                  whatsAppNR: whatsAppNR,
+                  whatsAppNRformated: formattedPhoneNumber,
+                ),
 
+                SignedUpTeamsGridview(
+                  tournamentId: tournamentId,
+                  isloading: _isloading,
+                ),
+              ],
+            ),
+          );
   }
 }

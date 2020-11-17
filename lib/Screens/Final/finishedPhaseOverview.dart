@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:hexcolor/hexcolor.dart';
@@ -24,6 +25,10 @@ class FinishedPhaseOverview extends StatefulWidget {
 }
 
 class _FinishedPhaseOverviewState extends State<FinishedPhaseOverview> {
+
+  ConfettiController _controllerCenter;
+
+
   var tournamentinstance =
       FirebaseFirestore.instance.collection("ourtournaments");
   bool _isloading;
@@ -95,8 +100,13 @@ class _FinishedPhaseOverviewState extends State<FinishedPhaseOverview> {
 
   @override
   initState() {
+
     // TODO: implement initState
     super.initState();
+
+
+    _controllerCenter =
+        ConfettiController(duration: const Duration(seconds: 10));
 
     _isloading = true;
     _isFinished = false;
@@ -125,10 +135,19 @@ class _FinishedPhaseOverviewState extends State<FinishedPhaseOverview> {
 
       checkisGold();
       checkSilverFinished();
+      _controllerCenter.play();
     });
 
     // If we are not an Admin we set CountrySelected to true so the athlet can see his/her result (Streambuilder List)
   }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _controllerCenter.dispose();
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -136,182 +155,205 @@ class _FinishedPhaseOverviewState extends State<FinishedPhaseOverview> {
         body: _isloading
             ? circularProgress()
             : SingleChildScrollView(
-                child: Container(
-                  color: Colors.white,
-                  child: Column(
-                    children: <Widget>[
-                      flagAppBar(
-                        myFlag: myFlag,
-                        screenHeightPercentage: 0.3,
-                      ),
-                      Container(
-                        margin: EdgeInsets.all(10),
-                        height: 100,
-                        width: MediaQuery.of(context).size.width,
-                        child: Column(
-                          children: <Widget>[
-                            Text(
-                              "Congratulations!!",
-                              style: TextStyle(
-                                fontSize: 30,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            Text(
-                              "You made it into the $myGroupName Group.",
-                              style: TextStyle(
-                                color: Colors.black.withOpacity(0.8),
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        height: 180,
-                        width: MediaQuery.of(context).size.width * 0.5,
-                        decoration: BoxDecoration(
-                            image: DecorationImage(
-                                image: _isGold
-                                    ? AssetImage(
-                                        "assets/images/congratstrophy.png")
-                                    : AssetImage(
-                                        "assets/images/silvergroup.png"),
-                                fit: BoxFit.contain)),
-                      ),
-                      // GOLD ONLY INFO: Which is the matchProgress and who is still In Game?
-                      _isGold
-                          ? Column(
+                child: Stack(
+                  children: [
+
+
+                    Container(
+                      color: Colors.white,
+                      child: Column(
+                        children: <Widget>[
+                          flagAppBar(
+                            myFlag: myFlag,
+                            screenHeightPercentage: 0.3,
+                          ),
+                          Container(
+                            margin: EdgeInsets.all(10),
+                            height: 100,
+                            width: MediaQuery.of(context).size.width,
+                            child: Column(
                               children: <Widget>[
+                                Text(
+                                  "Congratulations!!",
+                                  style: TextStyle(
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
                                 SizedBox(
-                                  height: 20,
+                                  height: 10,
                                 ),
                                 Text(
-                                  matchProgress,
+                                  "You made it into the $myGroupName Group.",
                                   style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: HexColor("#ea070a")),
+                                    color: Colors.black.withOpacity(0.8),
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  textAlign: TextAlign.center,
                                 ),
-                                _isFinished
-                                    ? Container(
-                                        padding: EdgeInsets.all(20),
-                                        child: Text(
-                                          "The Tournament is over. Continue to see your final result",
-                                          style: TextStyle(fontSize: 20),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      )
-                                    : Container(
-                                        height: 100,
-                                        width:
-                                            MediaQuery.of(context).size.width,
-                                        child: FutureBuilder(
-                                            future: getFinalMatches(),
-                                            builder: (context, tsnapshot) {
-                                              if (tsnapshot.connectionState ==
-                                                  ConnectionState.waiting) {
-                                                return circularProgress();
-                                              }
-                                              //Data Snapshot
-                                              var _loadeddata =
-                                                  tsnapshot.data.documents;
-                                              var proccessData = _loadeddata[0];
-
-                                              var finalData = proccessData
-                                                  .data()["GoldMatchList"];
-                                              print(
-                                                  "Das ist die LoadedData Lengrth");
-                                              print(_loadeddata.length);
-                                              return ListView.builder(
-                                                  itemCount: finalData.length,
-                                                  itemBuilder: (context, i) {
-                                                    return Container(
-                                                      height: 40,
-                                                      width:
-                                                          MediaQuery.of(context)
-                                                              .size
-                                                              .width,
-                                                      child: Text(
-                                                        finalData[i],
-                                                        textAlign:
-                                                            TextAlign.center,
-                                                        style: TextStyle(
-                                                          fontSize: 20,
-                                                        ),
-                                                      ),
-                                                    );
-                                                  });
-                                            }),
-                                      ),
                               ],
-                            )
-                          : SizedBox(
-                              height: 0,
                             ),
-
-                      Stack(
-                        children: [
+                          ),
                           Container(
-                            color: HexColor("#ffe664"),
-                            height: MediaQuery.of(context).size.height * 0.3,
+                            height: 180,
+                            width: MediaQuery.of(context).size.width * 0.5,
+                            decoration: BoxDecoration(
+                                image: DecorationImage(
+                                    image: _isGold
+                                        ? AssetImage(
+                                            "assets/images/congratstrophy.png")
+                                        : AssetImage(
+                                            "assets/images/silvergroup.png"),
+                                    fit: BoxFit.contain)),
                           ),
-                          ClipPath(
-                            clipper: ClippingClass(),
-                            child: Container(
-                              color: Colors.white,
-                              height: MediaQuery.of(context).size.height * 0.1,
-                            ),
-                          ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                          // GOLD ONLY INFO: Which is the matchProgress and who is still In Game?
+                          _isGold
+                              ? Column(
+                                  children: <Widget>[
+                                    SizedBox(
+                                      height: 20,
+                                    ),
+                                    Text(
+                                      matchProgress,
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: HexColor("#ea070a")),
+                                    ),
+                                    _isFinished
+                                        ? Container(
+                                            padding: EdgeInsets.all(20),
+                                            child: Text(
+                                              "The Tournament is over. Continue to see your final result",
+                                              style: TextStyle(fontSize: 20),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          )
+                                        : Container(
+                                            height: 100,
+                                            width:
+                                                MediaQuery.of(context).size.width,
+                                            child: FutureBuilder(
+                                                future: getFinalMatches(),
+                                                builder: (context, tsnapshot) {
+                                                  if (tsnapshot.connectionState ==
+                                                      ConnectionState.waiting) {
+                                                    return circularProgress();
+                                                  }
+                                                  //Data Snapshot
+                                                  var _loadeddata =
+                                                      tsnapshot.data.documents;
+                                                  var proccessData = _loadeddata[0];
+
+                                                  var finalData = proccessData
+                                                      .data()["GoldMatchList"];
+                                                  print(
+                                                      "Das ist die LoadedData Lengrth");
+                                                  print(_loadeddata.length);
+                                                  return ListView.builder(
+                                                      itemCount: finalData.length,
+                                                      itemBuilder: (context, i) {
+                                                        return Container(
+                                                          height: 40,
+                                                          width:
+                                                              MediaQuery.of(context)
+                                                                  .size
+                                                                  .width,
+                                                          child: Text(
+                                                            finalData[i],
+                                                            textAlign:
+                                                                TextAlign.center,
+                                                            style: TextStyle(
+                                                              fontSize: 20,
+                                                            ),
+                                                          ),
+                                                        );
+                                                      });
+                                                }),
+                                          ),
+                                  ],
+                                )
+                              : SizedBox(
+                                  height: 0,
+                                ),
+
+                          Stack(
                             children: [
-                              SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.15,
-                              ),
                               Container(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal:
-                                        MediaQuery.of(context).size.width *
-                                            0.325),
-                                width: double.infinity,
-                                child: RaisedButton(
-                                    onPressed: () {
-                                      if (matchProgress == "Gold - Over" &&
-                                          _isGold == true) {
-                                        Navigator.of(context).popAndPushNamed(
-                                            TournamentFinished.link);
-                                      }
-                                      if (_silverFinished == true && _isGold == false) {
-                                        Navigator.of(context).popAndPushNamed(
-                                            TournamentFinished.link);
-                                      } else if (_isGold) {
-                                        Navigator.of(context).popAndPushNamed(
-                                            NextGoldMatchUser.link,
-                                            arguments: {
-                                              "matchProgress": matchProgress
-                                            });
-                                      } else {
-                                        Navigator.of(context).popAndPushNamed(
-                                            SilverGroupUser.link);
-                                      }
-                                    },
-                                    child: Text("Continue")),
+                                color: HexColor("#ffe664"),
+                                height: MediaQuery.of(context).size.height * 0.3,
+                              ),
+                              ClipPath(
+                                clipper: ClippingClass(),
+                                child: Container(
+                                  color: Colors.white,
+                                  height: MediaQuery.of(context).size.height * 0.1,
+                                ),
+                              ),
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  SizedBox(
+                                    height:
+                                        MediaQuery.of(context).size.height * 0.15,
+                                  ),
+                                  Container(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal:
+                                            MediaQuery.of(context).size.width *
+                                                0.325),
+                                    width: double.infinity,
+                                    child: RaisedButton(
+                                        onPressed: () {
+                                          if (matchProgress == "Gold - Over" &&
+                                              _isGold == true) {
+                                            Navigator.of(context).popAndPushNamed(
+                                                TournamentFinished.link);
+                                          }
+                                          if (_silverFinished == true && _isGold == false) {
+                                            Navigator.of(context).popAndPushNamed(
+                                                TournamentFinished.link);
+                                          } else if (_isGold) {
+                                            Navigator.of(context).popAndPushNamed(
+                                                NextGoldMatchUser.link,
+                                                arguments: {
+                                                  "matchProgress": matchProgress
+                                                });
+                                          } else {
+                                            Navigator.of(context).popAndPushNamed(
+                                                SilverGroupUser.link);
+                                          }
+                                        },
+                                        child: Text("Continue")),
+                                  )
+                                ],
                               )
                             ],
-                          )
+                          ),
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+                    Align(
+                      alignment: Alignment.center,
+                      child: ConfettiWidget(
+                        confettiController: _controllerCenter,
+                        blastDirectionality: BlastDirectionality.explosive
+                            , // don't specify a direction, blast randomly
+                        shouldLoop:
+                        false, // start again as soon as the animation is finished
+                        colors: const [
+                          Colors.green,
+                          Colors.blue,
+                          Colors.pink,
+                          Colors.orange,
+                          Colors.purple
+                        ], // manually specify the colors to be used
+                      ),
+                    ),
+                  ],
                 ),
               ));
   }

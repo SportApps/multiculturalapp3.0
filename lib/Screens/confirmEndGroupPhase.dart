@@ -31,10 +31,10 @@ Column buildListView(List compList, String Groupname, bool isGold) {
             height: 50,
             decoration: BoxDecoration(
                 image: DecorationImage(
-              image: isGold
-                  ? AssetImage("assets/images/congratstrophy.png")
-                  : AssetImage("assets/images/silvergroup.png"),
-            )),
+                  image: isGold
+                      ? AssetImage("assets/images/congratstrophy.png")
+                      : AssetImage("assets/images/silvergroup.png"),
+                )),
           ),
           SizedBox(
             width: 5,
@@ -69,13 +69,16 @@ Column buildListView(List compList, String Groupname, bool isGold) {
             itemBuilder: (context, index) {
               String currentWins = compList[index]["countryWins"].toString();
               String currentACP =
-                  compList[index]["accumulatedPoints"].toString();
+              compList[index]["accumulatedPoints"].toString();
               String currentGroup =
-                  compList[index]["currentTeamGroup"].toString();
+              compList[index]["currentTeamGroup"].toString();
               return Container(
                 height: 80,
                 margin: EdgeInsets.symmetric(
-                    horizontal: MediaQuery.of(context).size.width * 0.1,
+                    horizontal: MediaQuery
+                        .of(context)
+                        .size
+                        .width * 0.1,
                     vertical: 10),
                 width: double.infinity,
                 decoration: BoxDecoration(
@@ -100,7 +103,10 @@ Column buildListView(List compList, String Groupname, bool isGold) {
                       ),
                     ),
                     Container(
-                      width: MediaQuery.of(context).size.width * 0.35,
+                      width: MediaQuery
+                          .of(context)
+                          .size
+                          .width * 0.35,
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -123,7 +129,10 @@ Column buildListView(List compList, String Groupname, bool isGold) {
                       ),
                     ),
                     Container(
-                      width: MediaQuery.of(context).size.width * 0.1,
+                      width: MediaQuery
+                          .of(context)
+                          .size
+                          .width * 0.1,
                       child: Text(
                         "$currentGroup OG",
                         textAlign: TextAlign.end,
@@ -159,7 +168,7 @@ class _ConfirmedEndGroupPhaseState extends State<ConfirmedEndGroupPhase> {
   bool _isloading;
 
   var tournamentinstance =
-      FirebaseFirestore.instance.collection("ourtournaments");
+  FirebaseFirestore.instance.collection("ourtournaments");
 
   String tournamentId;
 
@@ -196,7 +205,8 @@ class _ConfirmedEndGroupPhaseState extends State<ConfirmedEndGroupPhase> {
         return AlertDialog(
           title: new Text("Information incomplete"),
           content:
-              new Text("Please introduce a value for Teams/Group in Silver"),
+          new Text(
+              "Please introduce a valid value for Teams/Group in Silver. The minimum value is 2. "),
           actions: <Widget>[
             // usually buttons at the bottom of the dialog
             new FlatButton(
@@ -215,12 +225,18 @@ class _ConfirmedEndGroupPhaseState extends State<ConfirmedEndGroupPhase> {
   Container appBarbuilder() {
     return Container(
       padding: EdgeInsets.only(
-          top: MediaQuery.of(context).size.width * 0.1, bottom: 10),
+          top: MediaQuery
+              .of(context)
+              .size
+              .width * 0.1, bottom: 10),
       color: HexColor("#ffe664"),
       child: Row(
         children: [
           SizedBox(
-            width: MediaQuery.of(context).size.width * 0.3,
+            width: MediaQuery
+                .of(context)
+                .size
+                .width * 0.3,
           ),
           Text(
             "End Group Phase",
@@ -279,7 +295,7 @@ class _ConfirmedEndGroupPhaseState extends State<ConfirmedEndGroupPhase> {
   createGoldMatches() async {
     // 2.1) Make the groupNumber the first order so team plays against someone from different group.
     goldList.sort(
-        (a, b) => (b["currentTeamGroup"]).compareTo(a["currentTeamGroup"]));
+            (a, b) => (b["currentTeamGroup"]).compareTo(a["currentTeamGroup"]));
 
     // 2.2) Loop that creates the matches in a List.
     double doubleGames = goldList.length / 2;
@@ -756,7 +772,7 @@ class _ConfirmedEndGroupPhaseState extends State<ConfirmedEndGroupPhase> {
         .collection("Status")
         .doc("Finals")
         .set({"Beginn": true, "matchProgress": gameName},
-            SetOptions(merge: true));
+        SetOptions(merge: true));
     //2.) Finish Group Phase
     await tournamentinstance
         .doc(tournamentId)
@@ -793,12 +809,16 @@ class _ConfirmedEndGroupPhaseState extends State<ConfirmedEndGroupPhase> {
     _isloading = true;
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      var routeargs = ModalRoute.of(context).settings.arguments as Map;
+      var routeargs = ModalRoute
+          .of(context)
+          .settings
+          .arguments as Map;
 
       countryList = routeargs["countryList"];
       goldList = routeargs["gold"];
       goldList.sort(
-          (a, b) => (b["accumulatedPoints"]).compareTo(a["accumulatedPoints"]));
+              (a, b) =>
+              (b["accumulatedPoints"]).compareTo(a["accumulatedPoints"]));
 
       // Sort GoldList in first Order with CountryWins and in second Order with accumulated Wins.
 
@@ -808,7 +828,8 @@ class _ConfirmedEndGroupPhaseState extends State<ConfirmedEndGroupPhase> {
 
       // Sort SilverList in first Order with CountryWins and in second Order with accumulated Wins.
       silverList.sort(
-          (a, b) => (b["accumulatedPoints"]).compareTo(a["accumulatedPoints"]));
+              (a, b) =>
+              (b["accumulatedPoints"]).compareTo(a["accumulatedPoints"]));
 
       silverList.sort((a, b) => (b["countryWins"]).compareTo(a["countryWins"]));
 
@@ -863,6 +884,10 @@ class _ConfirmedEndGroupPhaseState extends State<ConfirmedEndGroupPhase> {
       var previousPointsP1 = fireUser1DataP1.data()["points"];
       var previousLostP1 = fireUser1DataP1.data()["historyGamesLost"];
 
+      if (previousLostP1 == 0) {
+        previousLostP1 = 1;
+      }
+
       var newPointsP1 = previousPointsP1 + currentWins;
 
       var newLostP1 = previousLostP1 + currentcountryLost;
@@ -895,7 +920,7 @@ class _ConfirmedEndGroupPhaseState extends State<ConfirmedEndGroupPhase> {
         "historyGamesWon": newWinsP1,
         "historyGamesLost": newLostP1,
         "winLooseRatio": newWinLooseRatioP1,
-        "achievedLvl": newLvlP1,
+        "achievedlvl": newLvlP1,
       });
 
       var fireUser1DataP2 = await FirebaseFirestore.instance
@@ -906,6 +931,11 @@ class _ConfirmedEndGroupPhaseState extends State<ConfirmedEndGroupPhase> {
       var previousGamesWonP2 = fireUser1DataP2.data()["historyGamesWon"];
       var previousPointsP2 = fireUser1DataP2.data()["points"];
       var previousLostP2 = fireUser1DataP2.data()["historyGamesLost"];
+
+      // In case the Athlet didn´t loose any matchts yet we need to set it to 1.
+      if (previousLostP2 == 0) {
+        previousLostP2 = 1;
+      }
 
       var newPointsP2 = previousPointsP2 + currentWins;
 
@@ -939,7 +969,7 @@ class _ConfirmedEndGroupPhaseState extends State<ConfirmedEndGroupPhase> {
         "historyGamesWon": newWinsP2,
         "historyGamesLost": newLostP2,
         "winLooseRatio": newWinLooseRatioP2,
-        "achievedLvl": newLvlP2,
+        "achievedlvl": newLvlP2,
       });
       print(newPointsP2);
       print("$previousPointsP2+$currentWins");
@@ -954,142 +984,184 @@ class _ConfirmedEndGroupPhaseState extends State<ConfirmedEndGroupPhase> {
       body: _isloading
           ? circularProgress()
           : SingleChildScrollView(
-              child: Column(
-                children: <Widget>[
-                  appBarbuilder(),
-                  Container(
-                      padding: EdgeInsets.only(top: 20),
-                      height: MediaQuery.of(context).size.height * 0.6,
-                      color: Colors.white,
-                      child: buildListView(goldList, "Gold List", true)),
-                  Container(
-                      height: MediaQuery.of(context).size.height * 0.6,
-                      color: Colors.white,
-                      child: buildListView(silverList, "Silver List", false)),
-                  _goldOK
-                      ? Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal:
-                                      MediaQuery.of(context).size.width * 0.15),
-                              width: double.infinity,
-                              color: Colors.white,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: <Widget>[
-                                  Expanded(
-                                    child: Container(
-                                        color: Colors.white,
-                                        child: Text(
-                                          "Teams/Group in Silver",
-                                          style: TextStyle(
-                                            fontSize: 15,
-                                            color: HexColor("#ea070a"),
-                                          ),
-                                          softWrap: true,
-                                          overflow: TextOverflow.ellipsis,
-                                        )),
-                                  ),
-                                  Container(
-                                      height: 50,
-                                      width: MediaQuery.of(context).size.width *
-                                          0.2,
-                                      decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(3),
-                                          border: Border.all(
-                                              width: 1,
-                                              color: HexColor("#ea070a"))),
-                                      child: TextField(
-                                          controller: _silverGroupController,
-                                          keyboardType: TextInputType.number,
-                                          textAlign: TextAlign.center,
-                                          decoration: InputDecoration(
-                                              labelStyle: new TextStyle(
-                                                  color: Colors.transparent)))),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              height: MediaQuery.of(context).size.height * 0.3,
-                              width: double.infinity,
-                              color: Colors.transparent,
-                              child: Stack(
-                                children: [
-                                  ClipPath(
-                                    clipper: ClippingClass(),
-                                    child: Container(
-                                      height:
-                                          MediaQuery.of(context).size.height *
-                                              0.125,
-                                      width: double.infinity,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  Column(
-                                    children: [
-                                      SizedBox(
-                                        height:
-                                            MediaQuery.of(context).size.height *
-                                                0.2,
-                                      ),
-                                      Center(
-                                        child: RaisedButton(
-                                          onPressed: () {
-                                            setState(() {
-                                              _isloading =true;
-                                            });
-
-                                            // If there is no value in the Textcontroller show error message.
-                                            if (_silverGroupController
-                                                .text.isEmpty) {
-                                              noTeamsErrermsg();
-                                              return;
-                                            }
-
-                                            teamsInSilverGroup = int.parse(
-                                                _silverGroupController.text);
-
-                                            createGoldMatches();
-                                            createSilverMatches();
-                                            startFinals();
-                                            uploadFinalsSummaries();
-                                            addGroupPhasePoints();
-
-                                            _isloading=false;
-
-                                            Navigator.of(context)
-                                                .popAndPushNamed(
-                                                    FinalsAdmin.link,
-                                                    arguments: {
-                                                  "matchProgress": gameName
-                                                });
-                                          },
-                                          child: Text("Create Matches"),
-                                        ),
-                                      ),
-                                    ],
-                                  )
-                                ],
-                              ),
-                            ),
-                          ],
-                        )
-                      : Padding(
-                          padding: EdgeInsets.all(10),
-                          child: Text(
-                            "GOLD ERROR! Must be  2 - 4 - 8 or 16!",
-                            style: TextStyle(
-                                color: Colors.red,
+        child: Column(
+          children: <Widget>[
+            appBarbuilder(),
+            Container(
+                padding: EdgeInsets.only(top: 20),
+                height: MediaQuery
+                    .of(context)
+                    .size
+                    .height * 0.6,
+                color: Colors.white,
+                child: buildListView(goldList, "Gold List", true)),
+            Container(
+                height: MediaQuery
+                    .of(context)
+                    .size
+                    .height * 0.6,
+                color: Colors.white,
+                child: buildListView(silverList, "Silver List", false)),
+            _goldOK
+                ? Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Container(
+                  padding: EdgeInsets.symmetric(
+                      horizontal:
+                      MediaQuery
+                          .of(context)
+                          .size
+                          .width * 0.15),
+                  width: double.infinity,
+                  color: Colors.white,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Expanded(
+                        child: Container(
+                            color: Colors.white,
+                            child: Text(
+                              "Teams/Group in Silver",
+                              style: TextStyle(
                                 fontSize: 15,
-                                fontWeight: FontWeight.bold),
+                                color: HexColor("#ea070a"),
+                              ),
+                              softWrap: true,
+                              overflow: TextOverflow.ellipsis,
+                            )),
+                      ),
+                      Container(
+                          height: 50,
+                          width: MediaQuery
+                              .of(context)
+                              .size
+                              .width *
+                              0.2,
+                          decoration: BoxDecoration(
+                              borderRadius:
+                              BorderRadius.circular(3),
+                              border: Border.all(
+                                  width: 1,
+                                  color: HexColor("#ea070a"))),
+                          child: TextField(
+                              controller: _silverGroupController,
+                              keyboardType: TextInputType.number,
+                              textAlign: TextAlign.center,
+                              decoration: InputDecoration(
+                                  labelStyle: new TextStyle(
+                                      color: Colors.transparent)))),
+                    ],
+                  ),
+                ),
+                Container(
+                  height: MediaQuery
+                      .of(context)
+                      .size
+                      .height * 0.3,
+                  width: double.infinity,
+                  color: Colors.transparent,
+                  child: Stack(
+                    children: [
+                      ClipPath(
+                        clipper: ClippingClass(),
+                        child: Container(
+                          height:
+                          MediaQuery
+                              .of(context)
+                              .size
+                              .height *
+                              0.125,
+                          width: double.infinity,
+                          color: Colors.white,
+                        ),
+                      ),
+                      Column(
+                        children: [
+                          SizedBox(
+                            height:
+                            MediaQuery
+                                .of(context)
+                                .size
+                                .height *
+                                0.2,
                           ),
-                        )
-                ],
+                          Center(
+                            child: RaisedButton(
+                              onPressed: () {
+                                setState(() {
+                                  _isloading = true;
+                                });
+
+                                // If there is no value in the Textcontroller show error message.
+                                if (_silverGroupController
+                                    .text.isEmpty) {
+                                  noTeamsErrermsg();
+                                  _isloading = false;
+                                  return;
+                                }
+
+                                else {
+                                  teamsInSilverGroup = int.parse(
+                                      _silverGroupController.text);
+
+                                }
+
+
+                                if (teamsInSilverGroup == 1
+                                ) {
+                                  noTeamsErrermsg();
+                                  _isloading = false;
+                                  return;
+                                }
+
+                                else if
+                                  (teamsInSilverGroup >= 2
+                                  )
+                                {
+                                  print("We proceed to the new phase");
+
+                                  createGoldMatches();
+                                  createSilverMatches();
+                                  startFinals();
+                                  uploadFinalsSummaries();
+                                  addGroupPhasePoints();
+
+                                  _isloading = false;
+
+                                  Navigator.of(context)
+                                      .popAndPushNamed(
+                                      FinalsAdmin.link,
+                                      arguments: {
+                                        "matchProgress": gameName
+                                      });
+                                }
+
+                                else {return;}
+                              },
+                              child: Text("Create Matches"),
+                            ),
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
+                ),
+              ],
+            )
+                : Padding(
+              padding: EdgeInsets.all(10),
+              child: Text(
+                "GOLD ERROR! Must be  2 - 4 - 8 or 16!",
+                style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold),
               ),
-            ),
+            )
+          ],
+        ),
+      ),
     );
   }
 }

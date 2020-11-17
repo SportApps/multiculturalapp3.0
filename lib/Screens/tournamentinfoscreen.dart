@@ -58,6 +58,7 @@ class TournamentinfoScreen extends StatelessWidget {
                               gradient: LinearGradient(
                                   begin: FractionalOffset.topCenter,
                                   end: FractionalOffset.bottomCenter,
+                                  
                                   colors: [
                                     Colors.white.withOpacity(0.0),
                                     Colors.white,

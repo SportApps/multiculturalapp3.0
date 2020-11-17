@@ -1,26 +1,23 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
-import 'package:multiculturalapp/Screens/Final/tournamentFinished.dart';
-import 'package:provider/provider.dart';
 import 'package:multiculturalapp/MyWidgets/TournOnWidgets/GameCard.dart';
-
+import 'package:multiculturalapp/MyWidgets/TournOnWidgets/myCountryInfo.dart';
 import 'package:multiculturalapp/MyWidgets/TournamentInfoScr/tournamentinfo.dart';
 import 'package:multiculturalapp/MyWidgets/clippingClass.dart';
 import 'package:multiculturalapp/MyWidgets/myAppBars/flagAppBar.dart';
 import 'package:multiculturalapp/MyWidgets/progress.dart';
+import 'package:multiculturalapp/Screens/Final/tournamentFinished.dart';
 import 'package:multiculturalapp/Screens/NextGameDetails.dart';
-import 'package:multiculturalapp/Screens/home.dart';
-import 'Final/finishedPhaseOverview.dart';
-
 import 'package:multiculturalapp/Screens/groupphaseOverview.dart';
-import 'package:multiculturalapp/model/tournaments.dart';
-import 'package:multiculturalapp/model/users.dart';
-import 'package:multiculturalapp/model/user.dart';
-import 'package:multiculturalapp/MyWidgets/TournOnWidgets/myCountryInfo.dart';
+import 'package:multiculturalapp/Screens/home.dart';
 import 'package:multiculturalapp/model/countryInfo.dart';
 import 'package:multiculturalapp/model/countryInfos.dart';
-import 'package:grouped_list/grouped_list.dart';
+import 'package:multiculturalapp/model/tournaments.dart';
+import 'package:multiculturalapp/model/users.dart';
+import 'package:provider/provider.dart';
+
+import 'Final/finishedPhaseOverview.dart';
 
 class TournOnScreen extends StatefulWidget {
   static const link = "/tournonscreen";
@@ -56,7 +53,7 @@ class _TournOnScreenState extends State<TournOnScreen> {
 
   var matchesInGroup;
 
-  List<String> NRList = [];
+  List<List<String>> NRList = [];
 
   var tournamentinstance =
       FirebaseFirestore.instance.collection("ourtournaments");
@@ -120,19 +117,6 @@ class _TournOnScreenState extends State<TournOnScreen> {
     );
   }
 
-  //1.) Is Admin Test Function
-  void checkIfAdmin(String lvlInput) {
-    if (lvlInput == "Admin") {
-      _isAdmin = true;
-    } else {
-      _isAdmin = false;
-    }
-
-    if (!_isAdmin) {
-      _countrySelected = true;
-    }
-  }
-
   // 2.) get Group Info function
   getGroupInfo(String tournamentId) async {
     var groupInfo = await tournamentinstance
@@ -140,12 +124,17 @@ class _TournOnScreenState extends State<TournOnScreen> {
         .collection("countries")
         .get();
     String displayCountry;
-    grouplength = groupInfo.documents.length;
+    grouplength = groupInfo.docs.length;
     int NR = 0;
+
+    String groupNumber;
 
     for (var i = 0; i < grouplength; i++) {
       displayCountry = groupInfo.docs[NR].id;
-      NRList.add(displayCountry);
+      var groupInfoVar = groupInfo.docs[NR];
+      groupNumber = groupInfoVar.data()["groupNumber"];
+
+      NRList.add([displayCountry, groupNumber]);
       NR++;
     }
   }
@@ -156,7 +145,7 @@ class _TournOnScreenState extends State<TournOnScreen> {
     var collection =
         await tournamentinstance.doc(TournId).collection("countries");
 
-    print(TournId);
+
     //--> Get Group Info (MyCountry, myFlag etc) and upload it on Provider CountryInfos
     // Get documents where the Player1ID is equal to our nutzerId.
     var result =
@@ -191,10 +180,12 @@ class _TournOnScreenState extends State<TournOnScreen> {
         richtigeLoesung = loesung2;
       }
 
+
       if (!_isAdmin) {
-        print(richtigeLoesung["groupNumber"]);
+
         myGroup = richtigeLoesung["groupNumber"];
         myCountry = richtigeLoesung["CountryName"];
+
         myFlag = richtigeLoesung["CountryURL"];
 
         CountryInfo myCountryInfo = CountryInfo();
@@ -204,13 +195,13 @@ class _TournOnScreenState extends State<TournOnScreen> {
         myCountryInfo.myFlag = myFlag;
 
         final countryINFO = Provider.of<Countryinfos>(context, listen: false);
-        countryINFO.addCountryInfo(myCountryInfo);
+        await countryINFO.addCountryInfo(myCountryInfo);
+        await finishPhaseandGo();
       }
-      finishPhaseandGo();
 
       //--> If Admin Activate get Groupswitcher Card
       if (_isAdmin) {
-        getGroupInfo(tournamentId);
+        await getGroupInfo(tournamentId);
       }
 
       // --> Calculate how many times we won/lost
@@ -235,12 +226,12 @@ class _TournOnScreenState extends State<TournOnScreen> {
       myGamesLost = looserData.docs.length;
 
       gamesPlayed = await myWins + myGamesLost;
-      print("Games played are $gamesPlayed");
+
     }
 
     // --> Get All the full Country Quantity
 
-    print("Function is funished");
+
 
     setState(() {
       _isloading = false;
@@ -248,6 +239,7 @@ class _TournOnScreenState extends State<TournOnScreen> {
   }
 
   void finishPhaseandGo() async {
+
     var disqualiFire = await tournamentinstance
         .doc(tournamentId)
         .collection("countries")
@@ -260,10 +252,10 @@ class _TournOnScreenState extends State<TournOnScreen> {
 // 3.) On GameCard Admin Functio9n - Change Group
 
   void onGameCardTap(BuildContext context, String matchId) {
-    print(matchId);
+    print(myCountry);
     Navigator.of(context).pushNamed(NextGameDetails.link, arguments: {
       "matchId": matchId,
-      "adminCountry": countryNow,
+      "adminCountry": myCountry,
       "silverFinals": false,
       "goldGameNAme": ""
     });
@@ -353,12 +345,8 @@ class _TournOnScreenState extends State<TournOnScreen> {
             "groupNumbar": currentTeamGroup,
             "Wins": countryWins,
             "accumulatedPoints": accumulatedPoints,
-
-
           };
         });
-
-
 
         // Here we add the teamMembersId to the list so we can later add the points on their account.
 
@@ -366,10 +354,10 @@ class _TournOnScreenState extends State<TournOnScreen> {
           "runningNR": runningNR,
           "currentTeam": currentTeam,
           "currentTeamGroup": currentTeamGroup,
-          "player1ID":currentParticipant1ID,
-          "player2ID":currenParticipant2ID,
+          "player1ID": currentParticipant1ID,
+          "player2ID": currenParticipant2ID,
           "countryWins": countryWins,
-          "countryLost":gamesLostLoop,
+          "countryLost": gamesLostLoop,
           "accumulatedPoints": accumulatedPoints,
           "goldGroup": false,
         });
@@ -385,7 +373,7 @@ class _TournOnScreenState extends State<TournOnScreen> {
         countryNR++;
       }
 
-      _isloading=false;
+      _isloading = false;
       Navigator.of(context)
           .pushNamed(GroupPhaseOverview.link, arguments: countryList);
       setState(() {
@@ -396,22 +384,23 @@ class _TournOnScreenState extends State<TournOnScreen> {
   }
 
   void checkGameStatus(ctx) async {
-
-   var fireCountry = await tournamentinstance.doc(tournamentId).collection("countries").doc(myCountry).get();
+    var fireCountry = await tournamentinstance
+        .doc(tournamentId)
+        .collection("countries")
+        .doc(myCountry)
+        .get();
 
     _isdisqualified = fireCountry.data()["Disqualified"];
     _isGoldWinner = fireCountry.data()["Grand Finale Winner"];
 
-    if(_isGoldWinner == null){_isGoldWinner = false;}
-
-    if (_isdisqualified || _isGoldWinner){
-
-      Navigator.of(context).popAndPushNamed(TournamentFinished.link);
-      return;
-
-
+    if (_isGoldWinner == null) {
+      _isGoldWinner = false;
     }
 
+    if (_isdisqualified || _isGoldWinner) {
+      Navigator.of(context).popAndPushNamed(TournamentFinished.link);
+      return;
+    }
 
     await tournamentinstance
         .doc(tournamentId)
@@ -528,24 +517,22 @@ class _TournOnScreenState extends State<TournOnScreen> {
             child: Text(
               "Change Country",
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 18, color:Colors.black.withOpacity(0.6)),
             ),
           ),
           Container(
-            padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width*0.05),
+            padding: EdgeInsets.symmetric(
+                horizontal: MediaQuery.of(context).size.width * 0.05),
             height: 80,
             width: MediaQuery.of(context).size.width,
             child: GridView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: grouplength,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 1,
-                  childAspectRatio: 1 / 2,
-                  mainAxisSpacing: 20
-                ),
+                    crossAxisCount: 1,
+                    childAspectRatio: 1 / 2,
+                    mainAxisSpacing: 20),
                 itemBuilder: (context, i) {
-                  print("$grouplength is at ...");
-                  print(NRList);
                   return Container(
                     padding: EdgeInsets.symmetric(horizontal: 10),
                     decoration: BoxDecoration(
@@ -553,10 +540,12 @@ class _TournOnScreenState extends State<TournOnScreen> {
                         border: Border.all(
                             width: 1, color: Colors.black.withOpacity(0.48)),
                         borderRadius: BorderRadius.circular(11)),
-
                     child: InkWell(
                       onTap: () async {
-                        countryNow = NRList[i];
+                        setState(() {
+                          _isloading = true;
+                        });
+                        var countryNow = NRList[i][0];
 
                         var newCountrydoc = await tournamentinstance
                             .doc(tournamentId)
@@ -564,19 +553,50 @@ class _TournOnScreenState extends State<TournOnScreen> {
                             .doc(countryNow)
                             .id;
 
+
                         myCountry = newCountrydoc;
+
                         _countrySelected = true;
-                        setState(() {});
+                        setState(() {
+                          _isloading = false;
+                        });
                       },
-                      child: Center(
-                        child: Text(
-                          NRList[i],
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            NRList[i][0],
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
+                          SizedBox(
+                            height: 5,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "Group ",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 18,
+
+                                ),
+                              ),
+                              Text(
+                                NRList[i][1],
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 18,
+
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
                   );
@@ -603,9 +623,13 @@ class _TournOnScreenState extends State<TournOnScreen> {
 
       final userinfo = userData.item;
       final String userId = userinfo[0].id;
-      userLvl = userinfo[0].lvl;
+      _isAdmin = userinfo[0].isAdmin;
 
-      checkIfAdmin(userLvl);
+      if (!_isAdmin) {
+        _countrySelected = true;
+      }
+
+
 
       final tournamentInfo = Provider.of<Tournaments>(context, listen: false);
 
@@ -623,12 +647,13 @@ class _TournOnScreenState extends State<TournOnScreen> {
     return _isloading
         ? circularProgress()
         : Scaffold(
-            body: Column(
+        resizeToAvoidBottomInset:false,
+        body: Column(
               children: <Widget>[
                 // We use the flagAppBar to visualize the users Country Flag.
                 _isAdmin
                     ? appBarbuilder()
-                    :  flagAppBar(
+                    : flagAppBar(
                         myFlag: myFlag,
                         screenHeightPercentage: 0.25,
                       ),
@@ -641,7 +666,7 @@ class _TournOnScreenState extends State<TournOnScreen> {
                         padding: EdgeInsets.only(
                             top: MediaQuery.of(context).size.height * 0.02),
                         color: Colors.white,
-                        child:  MyCountryInfo(
+                        child: MyCountryInfo(
                           phase: "Group Phase",
                           groupNR: myGroup,
                           myCountry: myCountry,
@@ -652,7 +677,7 @@ class _TournOnScreenState extends State<TournOnScreen> {
                 // ADMIN FUNCTIONS
                 !_isAdmin
                     ? SizedBox(
-                        height:  0,
+                        height: 0,
                       )
                     //The buildCountrySelecter buildFunction creates a Gridview which makes it possible for the ADMIN to select a Country.
                     : buildCountrySelecter(),
@@ -715,7 +740,7 @@ class _TournOnScreenState extends State<TournOnScreen> {
                                   var _loadeddataIndex;
                                   String team1;
                                   String team2;
-                                  print(_loadeddata.length);
+
                                   return ListView.builder(
                                       itemCount: _loadeddata.length,
                                       itemBuilder: (context, i) {
@@ -764,20 +789,22 @@ class _TournOnScreenState extends State<TournOnScreen> {
                         ],
                       )
                     : Container(
-                  color: Colors.white,
-                      width: double.infinity,
-                      child: Column(
+                        color: Colors.white,
+                        width: double.infinity,
+                        child: Column(
                           children: <Widget>[
                             SizedBox(
                               height: 20,
                             ),
                             Text(
                               "To see results please choose a country.",
-                              style: TextStyle(fontSize: 18,color: Colors.black.withOpacity(0.6)),
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.black.withOpacity(0.6)),
                             ),
                           ],
                         ),
-                    ),
+                      ),
 
                 _isAdmin
                     ? RaisedButton(

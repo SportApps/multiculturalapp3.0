@@ -5,13 +5,19 @@ class StandardAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-        backgroundColor: HexColor("ffe664"),
-        title: Container(
-          width: 40,
-          height: 30,
-          child: Image(
-            image: AssetImage("/assets/images/logo"),
-          ),
-        ));
+      backgroundColor: Colors.white,
+      elevation: 0,
+
+      title: Container(
+        width: MediaQuery.of(context).size.width * 0.35,
+        height: MediaQuery.of(context).size.width * 0.25,
+        decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage(
+                "assets/images/homeappbar2.png",
+              ),
+            )),
+      ),
+    );
   }
 }

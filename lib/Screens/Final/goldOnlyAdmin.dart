@@ -327,6 +327,9 @@ class _GoldOnlyAdminState extends State<GoldOnlyAdmin> {
 
       player1OldPoints = fireUser1.data()["points"];
       player1OldLost = fireUser1.data()["historyGamesLost"];
+
+      if (player1OldLost == 0) {player1OldLost=1;}
+
       player1OldWins = fireUser1.data()["historyGamesWon"];
 
       var fireUser2 = await FirebaseFirestore.instance
@@ -336,6 +339,9 @@ class _GoldOnlyAdminState extends State<GoldOnlyAdmin> {
 
       player2OldPoints = fireUser2.data()["points"];
       player2OldLost = fireUser2.data()["historyGamesLost"];
+
+      if (player2OldLost == 0) {player2OldLost=1;}
+
       player2OldWins = fireUser2.data()["historyGamesWon"];
 
       // Now we add the old and new points together.
@@ -369,6 +375,7 @@ class _GoldOnlyAdminState extends State<GoldOnlyAdmin> {
 
       player2NewLost = player2OldLost + currentTeamLost;
 
+
       newRatioP2 = player2NewWins / player2NewLost;
 
       if (player2NewPoints >= 100 && newRatioP2 > 2) {
@@ -391,7 +398,7 @@ class _GoldOnlyAdminState extends State<GoldOnlyAdmin> {
         "historyGamesWon": player1NewWins,
         "historyGamesLost": player1NewLost,
         "winLooseRatio": newRatioP1,
-        "achievedLvl": newLvlP1,
+        "achievedlvl": newLvlP1,
       });
       // Update User Data on Firebase
       FirebaseFirestore.instance.collection("users").doc(userID2).update({
@@ -399,7 +406,7 @@ class _GoldOnlyAdminState extends State<GoldOnlyAdmin> {
         "historyGamesWon": player2NewWins,
         "historyGamesLost": player2NewLost,
         "winLooseRatio": newRatioP2,
-        "achievedLvl": newLvlP2,
+        "achievedlvl": newLvlP2,
       });
 
       NR++;
@@ -513,10 +520,13 @@ class _GoldOnlyAdminState extends State<GoldOnlyAdmin> {
                                   },
                                   child: Container(
                                     height: 60,
+
                                     margin: EdgeInsets.symmetric(
+                                      vertical: 5,
                                         horizontal:
                                             MediaQuery.of(context).size.width *
                                                 0.1),
+
                                     decoration: BoxDecoration(
                                         color: HexColor("#e9e9e9"),
                                         borderRadius:
@@ -601,11 +611,14 @@ class _GoldOnlyAdminState extends State<GoldOnlyAdmin> {
                                             return Container(
                                               height: 60,
                                               margin: EdgeInsets.symmetric(
+                                                vertical: 5,
+
                                                   horizontal:
                                                       MediaQuery.of(context)
                                                               .size
                                                               .width *
                                                           0.1),
+
                                               decoration: BoxDecoration(
                                                   color: HexColor("#e9e9e9"),
                                                   borderRadius:
@@ -641,11 +654,19 @@ class _GoldOnlyAdminState extends State<GoldOnlyAdmin> {
                                             onPressed: () {
                                               if (matchProgress ==
                                                   "Gold - Over") {
+
+                                                Scaffold.of(context).showSnackBar(SnackBar(
+                                                  content: Text('Gold - Phase is finished. Points have already been credited to athlets.... .'),
+                                                  duration: Duration(seconds: 5),
+                                                ));
                                                 return;
                                               } else if (matchProgress ==
                                                   "Grand Finale") {
                                                 finishtournamentGold();
                                                 creditPoints();
+                                                setState(() {
+                                                  _goldIsFinished=true;
+                                                });
 
                                                 return;
                                               } else {

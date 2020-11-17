@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:multiculturalapp/MyWidgets/TournamentInfoScr/tournamentinfo.dart';
 import 'package:provider/provider.dart';
@@ -15,6 +16,7 @@ class Startscreentlist extends StatelessWidget {
       this.startingHour,
       this.finishHour,
       this.location,
+        this.locationUrl,
       this.name,
       this.niveles,
       this.price,
@@ -24,7 +26,9 @@ class Startscreentlist extends StatelessWidget {
       this.userId,
       this.fotoLink,
       this.photoUrl,
-      this.googleName});
+      this.googleName,
+      this.organizerPhoto,
+      this.organizerId});
 
   final String date;
 
@@ -37,6 +41,8 @@ class Startscreentlist extends StatelessWidget {
   final String finishHour;
 
   final String location;
+
+  final String locationUrl;
 
   final String name;
 
@@ -62,6 +68,11 @@ class Startscreentlist extends StatelessWidget {
 
   final int maxParticipants;
 
+  final String organizerPhoto;
+
+  final String organizerId;
+
+
   void changeScreen(BuildContext context) {
     // Add Tournament to Provider list
 
@@ -74,13 +85,20 @@ class Startscreentlist extends StatelessWidget {
         startingHour: startingHour,
         finishHour: finishHour,
         location: location,
+        locationUrl: locationUrl,
         name: name,
         niveles: niveles,
         price: price,
         tournamentid: tournamentId,
         organizerName: organizerName,
-        whatsAppNR: whatsAppNR);
+        whatsAppNR: whatsAppNR,
+        organizerPhoto: organizerPhoto,
+      organizerId: organizerId,
 
+    );
+
+
+    print("The location is $location and the location URL is $locationUrl");
     Provider.of<Tournaments>(context, listen: false)
         .addTournament(selectedTournament);
 
@@ -97,6 +115,7 @@ class Startscreentlist extends StatelessWidget {
       child: Container(
         width: MediaQuery.of(context).size.width*0.35,
         height: MediaQuery.of(context).size.width*0.3,
+        padding: EdgeInsets.only(left:5),
         margin: EdgeInsets.only(
             bottom: 10, left: MediaQuery.of(context).size.width * 0.025, right: MediaQuery.of(context).size.width * 0.025),
         decoration: BoxDecoration(

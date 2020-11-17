@@ -6,6 +6,7 @@ class Tournament {
     this.startingHour,
     this.finishHour,
     this.location,
+    this.locationUrl,
     this.maxParticipants,
     this.genderOnly,
     this.name,
@@ -15,7 +16,9 @@ class Tournament {
     this.teams,
     this.groupNumber,
     this.organizerName,
-    this.whatsAppNR
+    this.whatsAppNR,
+    this.organizerPhoto,
+    this.organizerId
 
 
   });
@@ -26,6 +29,7 @@ class Tournament {
   String finishHour;
   String description;
   String location;
+  String locationUrl;
   int maxParticipants;
   String genderOnly;
   String name;
@@ -36,4 +40,6 @@ class Tournament {
   String groupNumber;
   String organizerName;
   String whatsAppNR;
+  String organizerPhoto;
+  String organizerId;
 }

@@ -3,13 +3,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
-import 'package:multiculturalapp/MyWidgets/TournamentInfoScr/tournamentinfo.dart';
 import 'package:multiculturalapp/MyWidgets/clippingClass.dart';
 import 'package:multiculturalapp/MyWidgets/progress.dart';
 import 'package:multiculturalapp/Screens/home.dart';
 import 'package:multiculturalapp/model/tournaments.dart';
 import 'package:multiculturalapp/model/users.dart';
+import 'package:provider/provider.dart';
 
 class AddTournamentScreen extends StatefulWidget {
   static const link = "/addTournamentScreen";
@@ -42,6 +41,8 @@ class _AddTournamentScreenState extends State<AddTournamentScreen> {
 
   String location;
 
+  String locationUrl;
+
   String startingHour;
 
   String finishingHour;
@@ -54,6 +55,10 @@ class _AddTournamentScreenState extends State<AddTournamentScreen> {
 
   String whatsappNr;
 
+  String organizerPhoto;
+
+  String organizerId;
+
   DateTime selectedDate = DateTime.now();
 
   String newFormat = "";
@@ -63,6 +68,8 @@ class _AddTournamentScreenState extends State<AddTournamentScreen> {
   final _maxParticipantsFocusNote = FocusNode();
 
   final _locationFocusNote = FocusNode();
+
+  final _locationUrlFocusNote = FocusNode();
 
   final _priceFocusNote = FocusNode();
 
@@ -80,6 +87,7 @@ class _AddTournamentScreenState extends State<AddTournamentScreen> {
     _nameFocusNote.dispose();
 
     _locationFocusNote.dispose();
+    _locationUrlFocusNote.dispose();
     _maxParticipantsFocusNote.dispose();
     _priceFocusNote.dispose();
     _descriptionFocusNote.dispose();
@@ -377,7 +385,8 @@ class _AddTournamentScreenState extends State<AddTournamentScreen> {
       // We refer to the in this class created _form Global KEy Variable.
       _formkey.currentState.save();
 
-      print("Masparticipants are $maxParticipants");
+      print(
+          "Organizerphoto in the moment of the print statetement is $organizerPhoto");
       await FirebaseFirestore.instance
           .collection("ourtournaments")
           .doc(tournamentId)
@@ -387,6 +396,7 @@ class _AddTournamentScreenState extends State<AddTournamentScreen> {
         "maxParticipants": maxParticipants,
         "niveles": level,
         "location": location,
+        "locationUrl": locationUrl,
         "date": selectedDate,
         "startingHour": timeText,
         "finishHour": timeText2,
@@ -395,15 +405,36 @@ class _AddTournamentScreenState extends State<AddTournamentScreen> {
         "price": price,
         "tournamentId": tournamentId,
         "organizerName": organizerName,
-        "whatsAppNR": whatsappNr
+        "whatsAppNR": whatsappNr,
+        "organizerPhoto": organizerPhoto,
+        "organizerId": organizerId,
+        "ratingIncluded": false,
       }, SetOptions(merge: true));
     } else {
       print("NEW CASE - We are creating a new tournament here.");
 
       // We refer to the in this class created _form Global KEy Variable.
       _formkey.currentState.save();
+      var tournamentsOrganized;
+      try {
+        var FireUser = await FirebaseFirestore.instance
+            .collection("users")
+            .doc(organizerId)
+            .get();
 
-      print("Startinghour is $startingHour");
+        tournamentsOrganized = FireUser.data()["tournamentsOrganized"];
+        if(tournamentsOrganized == null){tournamentsOrganized=0;}
+      } catch (e) {
+        print("Error case");
+        tournamentsOrganized = 0;
+      }
+
+      tournamentsOrganized = tournamentsOrganized+1;
+
+      await FirebaseFirestore.instance.collection("users").doc(organizerId).set(
+          {"tournamentsOrganized": tournamentsOrganized},
+          SetOptions(merge: true));
+
       await FirebaseFirestore.instance
           .collection("ourtournaments")
           .doc(tournamentName + "_" + newFormat + "_" + timeText)
@@ -413,6 +444,7 @@ class _AddTournamentScreenState extends State<AddTournamentScreen> {
         "maxParticipants": maxParticipants,
         "niveles": level,
         "location": location,
+        "locationUrl": locationUrl,
         "date": selectedDate,
         "startingHour": timeText,
         "finishHour": timeText2,
@@ -421,7 +453,10 @@ class _AddTournamentScreenState extends State<AddTournamentScreen> {
         "price": price,
         "tournamentId": tournamentName + "_" + newFormat + "_" + timeText,
         "organizerName": organizerName,
-        "whatsAppNR": whatsappNr
+        "whatsAppNR": whatsappNr,
+        "organizerPhoto": organizerPhoto,
+        "organizerId": organizerId,
+        "ratingIncluded": false
       }, SetOptions(merge: true));
     }
 
@@ -506,10 +541,12 @@ class _AddTournamentScreenState extends State<AddTournamentScreen> {
     // TODO: implement initState
 
     _isLoading = true;
+
     tournamentName = "";
     maxParticipants = 0;
     level = "";
     location = "";
+    locationUrl = "";
     newFormat = "";
     startingHour = "";
     finishingHour = "";
@@ -523,8 +560,10 @@ class _AddTournamentScreenState extends State<AddTournamentScreen> {
       final userData = Provider.of<Users>(context, listen: false);
 
       final userinfo = userData.item;
-      organizerName = userinfo[0].displayName;
-
+      organizerName = userinfo[0].username;
+      organizerPhoto = userinfo[0].photoUrl;
+      organizerId = userinfo[0].id;
+      print("Organizer photo at initstate is $organizerPhoto");
       //0)Check is admin
       final routearguments =
           ModalRoute.of(context).settings.arguments as Map<String, dynamic>;
@@ -568,6 +607,7 @@ class _AddTournamentScreenState extends State<AddTournamentScreen> {
           _radioValue2 = 3;
         }
         location = tournamentInfo[0].location;
+        locationUrl = tournamentInfo[0].locationUrl;
         newFormat = tournamentInfo[0].date;
         startingHour = tournamentInfo[0].startingHour;
         finishingHour = tournamentInfo[0].finishHour;
@@ -846,13 +886,61 @@ class _AddTournamentScreenState extends State<AddTournamentScreen> {
                                           focusNode: _locationFocusNote,
                                           //Here we tell the App to Focus Scope on the _pricefocusnote.
                                           onFieldSubmitted: (_) {
+                                            FocusScope.of(context).requestFocus(
+                                                _locationUrlFocusNote);
+                                          },
+                                          //We use the "onSaved argument to
+                                          // Here we take the _editProduct (which is an empty product) and overwrite it with a new Product
+                                          onSaved: (value) {
+                                            location = value;
+                                          }),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              Container(
+                                margin: EdgeInsets.symmetric(vertical: 20),
+                                child: Row(
+                                  children: <Widget>[
+                                    Container(
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                0.3,
+                                        child: Text(
+                                          "Location URL ",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(fontSize: 15),
+                                        )),
+                                    Flexible(
+                                      child: TextFormField(
+
+                                          // The return statement of our validator argument is automatically our error message.
+                                          validator: (value) {
+                                            if (value.isEmpty) {
+                                              return "Please enter Google Location URL!";
+                                            }
+                                            if (value.length < 15) {
+                                              return "Please enter a valid location URL.";
+                                            }
+                                            return null;
+                                          },
+                                          initialValue: locationUrl,
+                                          keyboardType: TextInputType.url,
+                                          textCapitalization:
+                                              TextCapitalization.words,
+                                          // The textInputAction determines what happens if we finish to fill out the input field. in this case we go to the next field of the form.
+                                          textInputAction: TextInputAction.next,
+                                          focusNode: _locationUrlFocusNote,
+                                          //Here we tell the App to Focus Scope on the _pricefocusnote.
+                                          onFieldSubmitted: (_) {
                                             FocusScope.of(context)
                                                 .requestFocus(_priceFocusNote);
                                           },
                                           //We use the "onSaved argument to
                                           // Here we take the _editProduct (which is an empty product) and overwrite it with a new Product
                                           onSaved: (value) {
-                                            location = value;
+                                            locationUrl = value;
                                           }),
                                     ),
                                   ],
@@ -998,6 +1086,9 @@ class _AddTournamentScreenState extends State<AddTournamentScreen> {
                                       if (value.isEmpty) {
                                         return "Please enter value!";
                                       }
+                                      if (value.length > 50) {
+                                        return "Please enter a description with MAX 50 characters.L.";
+                                      }
                                       return null;
                                     },
                                     initialValue: description,
@@ -1010,6 +1101,7 @@ class _AddTournamentScreenState extends State<AddTournamentScreen> {
                                     textInputAction: TextInputAction.next,
                                     focusNode: _descriptionFocusNote,
                                     maxLines: 4,
+
                                     //Here we tell the App to Focus Scope on the _pricefocusnote.
                                     onFieldSubmitted: (_) {
                                       FocusScope.of(context).requestFocus(
@@ -1129,14 +1221,17 @@ class _AddTournamentScreenState extends State<AddTournamentScreen> {
                                                       if (value.isEmpty) {
                                                         return "Please enter value!";
                                                       }
-                                                      if (value.length > 12) {
-                                                        return "Please enter a number with less than 12 Characters.";
+                                                      if (value.length >= 13) {
+                                                        return "Please enter a number with less than 13 Characters.";
+                                                      }
+                                                      if (value.length <= 9) {
+                                                        return "Please enter a number in the format +34685666202.";
                                                       }
                                                       return null;
                                                     },
                                                     initialValue: whatsappNr,
                                                     keyboardType:
-                                                        TextInputType.number,
+                                                        TextInputType.phone,
                                                     textCapitalization:
                                                         TextCapitalization
                                                             .words,
